@@ -18,30 +18,31 @@
                         <thead>
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Domain</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Email</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Domain</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Plan</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Action</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                          
+                           @foreach ($tenants as $tenant)
                                 <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100"></td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300"></td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{{ $tenant->name }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">{{ $tenant->email}}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">@foreach($tenant->domains as $domain) {{ $domain->domain }} {{ $loop->last ? '':','}} @endforeach</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300"></td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300"></td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300 space-x-2">
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300 space-x-2">
-    <span class="inline-block px-3 py-1 bg-green-500 text-white rounded text-xs">Approve</span>
-    <span class="inline-block px-3 py-1 bg-yellow-500 text-white rounded text-xs">Reject</span>
-    <span class="inline-block px-3 py-1 bg-blue-500 text-white rounded text-xs">View</span>
-    <span class="inline-block px-3 py-1 bg-red-500 text-white rounded text-xs">Disable</span>
-</td>
+                                        <span class="inline-block px-3 py-1 bg-green-500 text-white rounded text-xs">Approve</span>
+                                        <span class="inline-block px-3 py-1 bg-yellow-500 text-white rounded text-xs">Reject</span>
+                                        <span class="inline-block px-3 py-1 bg-blue-500 text-white rounded text-xs">View</span>
+                                        <span class="inline-block px-3 py-1 bg-red-500 text-white rounded text-xs">Disable</span>
+                                    </td>
 
                                     </td>
                                 </tr>
-                      
+                           @endforeach
                                 <tr>
                                     <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
                                         

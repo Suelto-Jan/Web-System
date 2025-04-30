@@ -11,13 +11,25 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 {
     use HasDatabase, HasDomains;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'domain_name',
+    ];
+
     public static function getCustomColumns(): array
     {
         return [
             'id',
-            'name',
-            'email',
-            'password',
+            'created_at',
+            'updated_at',
+            'data',
         ];
     }
     public function setPasswordAttribute($value){
