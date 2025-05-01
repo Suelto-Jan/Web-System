@@ -3,8 +3,7 @@
 declare(strict_types=1);
 
 use Stancl\Tenancy\Database\Models\Domain;
-// We're using our custom Tenant model, so we don't need to import the base one
-// use Stancl\Tenancy\Database\Models\Tenant;
+use Stancl\Tenancy\Database\Models\Tenant;
 
 return [
     'tenant_model' => \App\Models\Tenant::class,
@@ -19,8 +18,9 @@ return [
      */
     'central_domains' => [
         '127.0.0.1',
+        '127.0.0.1:8000',
         'localhost',
-        
+        'localhost:8000',
     ],
 
     /**

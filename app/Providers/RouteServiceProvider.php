@@ -20,6 +20,13 @@ class RouteServiceProvider extends ServiceProvider
     public const HOME = '/dashboard';
 
     /**
+     * The controller namespace for the application.
+     *
+     * @var string|null
+     */
+    protected $namespace = 'App\\Http\\Controllers';
+
+    /**
      * Define your route model bindings, pattern filters, and other route configuration.
      */
     public function boot(): void
@@ -30,21 +37,22 @@ class RouteServiceProvider extends ServiceProvider
 
         $centralDomains = $this->centralDomains();
 
+        // Register routes for central domains
+        foreach($centralDomains as $domain) {
+            Route::domain($domain)->group(function () {
+                Route::middleware('web')->group(base_path('routes/web.php'));
 
-        $this->routes(function () use ($centralDomains) {
-            foreach($centralDomains as $domain){
-            if (file_exists(base_path('routes/api.php'))) {
-                Route::middleware('api')
-                    ->prefix('api')
-                    ->domain($domain)
-                    ->group(base_path('routes/api.php'));
-            }
-
-            Route::middleware('web')
-                ->domain($domain)
-                ->group(base_path('routes/web.php'));
+                if (file_exists(base_path('routes/api.php'))) {
+                    Route::middleware('api')
+                        ->prefix('api')
+                        ->group(base_path('routes/api.php'));
+                }
+            });
         }
-        });
+
+        // Register routes for tenant domains
+        Route::middleware(['web', 'tenant'])
+            ->group(base_path('routes/tenant.php'));
     }
     protected function centralDomains(): array
     {

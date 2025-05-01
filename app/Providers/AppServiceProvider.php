@@ -19,6 +19,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Configure URL generation to use the current domain
+        // This ensures that route() helper generates URLs for the current domain
+        // instead of the central domain
+        if (app()->bound('tenant')) {
+            $tenant = app('tenant');
+            if ($tenant) {
+                $domain = request()->getHost();
+                config(['app.url' => request()->getScheme() . '://' . $domain]);
+            }
+        }
     }
 }

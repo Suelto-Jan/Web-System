@@ -32,7 +32,8 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'data',
         ];
     }
-    public function setPasswordAttribute($value){
+    public function setPasswordAttribute($value)
+    {
         $this->attributes['password'] = bcrypt($value);
     }
 }

@@ -35,36 +35,14 @@ class TenantController extends Controller
         'name' => 'required|string|max:255',
         'email' => 'required|email|max:255',
         'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        'domain_name' => 'required|string|max:255',
+        'domain_name' => 'required|string|max:255|unique:domains,domain',
        ]);
 
-       // Format the domain name correctly
-       $domainName = $validatedData['domain_name'];
-
-       // Remove any port number if present in the domain name
-       $domainName = preg_replace('/:\d+$/', '', $domainName);
-
-       // Get the app domain without any port number
-       $appDomain = preg_replace('/:\d+$/', '', config('app.domain'));
-
-       // Create the full domain with the correct format (without port)
-       $fullDomain = $domainName . '.' . $appDomain;
-
-       // Create the tenant
        $tenant = Tenant::create($validatedData);
 
-       // Create the domain without port number
        $tenant->domains()->create([
-           'domain' => $fullDomain
+        'domain' => $validatedData['domain_name'].'.'.config('app.domain')
        ]);
-
-       // Display success message
-       session()->flash('success', "Tenant created successfully! Domain: {$fullDomain}");
-
-       // Add a note about hosts file for local development
-       if (app()->environment('local')) {
-           session()->flash('info', "For local development, add this line to your hosts file: 127.0.0.1 {$fullDomain}");
-       }
        return redirect()->route('tenants.index');
     }
 

@@ -20,11 +20,24 @@ use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 Route::middleware([
     'web',
-    InitializeTenancyByDomain::class,
+    \App\Http\Middleware\CustomInitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
-    Route::get('/', function () {
-        dd(tenant()->toArray());
-        return 'This is your multi-tenant application. The id of the current tenant is ' . tenant('id');
+    Route::get('/', function (){
+        return view('app.welcome');
     });
+
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->middleware(['auth', 'verified'])->name('dashboard');
+
+    Route::middleware('auth')->group(function () {
+        Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+        Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+        //Route::resource('users', TenantController::class);
+    });
+
+    require __DIR__.'/tenant-auth.php';
 });
