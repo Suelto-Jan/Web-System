@@ -14,27 +14,22 @@ return Application::configure(basePath: dirname(__DIR__))
         App\Providers\RouteServiceProvider::class,
     ])
     ->withMiddleware(function (Middleware $middleware) {
-        // Define tenant middleware aliases
         $middleware->alias([
-            'tenant' => \App\Http\Middleware\CustomInitializeTenancyByDomain::class,
-            'tenancy.enforce' => \Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::class,
+            'tenant' => \Stancl\Tenancy\Middleware\InitializeTenancyByDomain::class,
         ]);
 
         // Configure web middleware group
         $middleware->web(append: [
             \App\Http\Middleware\SetTenantAppUrl::class,
+            \App\Http\Middleware\CheckTenantStatus::class,
+            \App\Http\Middleware\TenantAuthentication::class,
         ]);
 
         // Configure global middleware
         $middleware->append([
             \App\Http\Middleware\SetTenantAppUrl::class,
-        ]);
-
-        // Ensure tenant middleware has highest priority
-        $middleware->priority([
-            \App\Http\Middleware\SetTenantAppUrl::class,
-            \Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::class,
-            \App\Http\Middleware\CustomInitializeTenancyByDomain::class,
+            \App\Http\Middleware\CheckTenantStatus::class,
+            \App\Http\Middleware\TenantAuthentication::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

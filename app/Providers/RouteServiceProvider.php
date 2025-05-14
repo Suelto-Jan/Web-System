@@ -56,6 +56,19 @@ class RouteServiceProvider extends ServiceProvider
     }
     protected function centralDomains(): array
     {
-        return config('tenancy.central_domains');
+        $domains = config('tenancy.central_domains');
+        $result = [];
+
+        // Add domains with and without port numbers
+        foreach ($domains as $domain) {
+            $result[] = $domain;
+
+            // Add domain with port 8000 for local development
+            if (!str_contains($domain, ':')) {
+                $result[] = $domain . ':8000';
+            }
+        }
+
+        return $result;
     }
 }

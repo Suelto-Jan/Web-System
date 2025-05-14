@@ -22,22 +22,15 @@ class TenancyServiceProvider extends ServiceProvider
     {
         return [
             // Tenant events
-            Events\CreatingTenant::class => [
-                
-            ],
+            Events\CreatingTenant::class => [],
             Events\TenantCreated::class => [
                 JobPipeline::make([
                     Jobs\CreateDatabase::class,
                     Jobs\MigrateDatabase::class,
                     \App\Jobs\SeedTenantJob::class,
-                    // Jobs\SeedDatabase::class,
-
-                    // Your own jobs to prepare the tenant.
-                    // Provision API keys, create S3 buckets, anything you want!
-
                 ])->send(function (Events\TenantCreated $event) {
                     return $event->tenant;
-                })->shouldBeQueued(false), // `false` by default, but you probably want to make this `true` for production.
+                })->shouldBeQueued(false),
             ],
             Events\SavingTenant::class => [],
             Events\TenantSaved::class => [],
@@ -97,7 +90,10 @@ class TenancyServiceProvider extends ServiceProvider
 
     public function register()
     {
-        //
+        // Register our custom ID generator class
+        $this->app->singleton('tenancy.id.generator', function () {
+            return new \App\Tenancy\CustomTenantIdGenerator();
+        });
     }
 
     public function boot()

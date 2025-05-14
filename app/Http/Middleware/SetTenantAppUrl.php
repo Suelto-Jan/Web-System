@@ -33,25 +33,6 @@ class SetTenantAppUrl
         // Ensure session domain is properly set
         config(['session.domain' => null]);
 
-        // Get the domain without port for identification purposes
-        $domainWithoutPort = preg_replace('/:\d+$/', '', $domain);
-
-        // Check if this is a tenant domain (subdomain of localhost or other configured domain)
-        $isLocalTenantDomain = strpos($domainWithoutPort, '.localhost') !== false;
-        $isConfiguredTenantDomain = strpos($domainWithoutPort, '.' . preg_replace('/:\d+$/', '', config('app.domain'))) !== false;
-
-        if ($isLocalTenantDomain || $isConfiguredTenantDomain) {
-            // For local development with tenant domains
-            // Make sure the domain is recognized correctly
-            config(['tenancy.domain_identification' => true]);
-
-            // Store the domain without port for tenant identification
-            $request->headers->set('X-Forwarded-Host', $domainWithoutPort);
-
-            // Debug information
-            // Log::info('Tenant domain detected: ' . $domainWithoutPort);
-        }
-
         // Debug information to help troubleshoot
         // Log::info('Request URL: ' . $request->url());
         // Log::info('App URL set to: ' . config('app.url'));

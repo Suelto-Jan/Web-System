@@ -28,10 +28,12 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        // Use the current domain for the redirect
-        // The 'false' parameter ensures the URL is not absolute (doesn't include the domain)
-        // which means it will use the current domain
-        return redirect()->intended(route('dashboard', [], false));
+        // Check which guard was used for authentication
+        if (Auth::guard('student')->check()) {
+            return redirect()->intended(route('student.dashboard'));
+        } else {
+            return redirect()->intended(route('dashboard'));
+        }
     }
 
     /**
@@ -39,10 +41,11 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        // Logout from both web and student guards
         Auth::guard('web')->logout();
+        Auth::guard('student')->logout();
 
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
 
         return redirect('/');

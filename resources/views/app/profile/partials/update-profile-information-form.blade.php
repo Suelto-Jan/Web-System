@@ -47,6 +47,15 @@
             @endif
         </div>
 
+        <div>
+            <x-input-label for="profile_photo" :value="__('Profile Photo')" />
+            @if($user->profile_photo)
+                <img src="{{ $user->profile_photo }}" alt="Current Avatar" class="h-16 w-16 rounded-full mb-2 object-cover">
+            @endif
+            <input id="profile_photo" name="profile_photo" type="file" class="mt-1 block w-full text-sm text-gray-500 dark:text-gray-400" accept="image/*">
+            <x-input-error class="mt-2" :messages="$errors->get('profile_photo')" />
+        </div>
+
         <div class="flex items-center gap-4">
             <x-primary-button>{{ __('Save') }}</x-primary-button>
 

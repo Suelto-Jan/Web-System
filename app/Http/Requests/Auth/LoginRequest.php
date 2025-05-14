@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
 
 class LoginRequest extends FormRequest
 {
@@ -41,15 +42,55 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
-            RateLimiter::hit($this->throttleKey());
+        \Log::info('Login attempt', [
+            'email' => $this->input('email'),
+            'remember' => $this->boolean('remember'),
+            'tenant' => tenant() ? tenant()->id : 'central',
+            'database' => DB::connection()->getDatabaseName()
+        ]);
 
-            throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
+        // Try student guard first
+        try {
+            if (\Auth::guard('student')->attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+                \Log::info('Student authentication successful for email: ' . $this->input('email'));
+                \Illuminate\Support\Facades\RateLimiter::clear($this->throttleKey());
+                return;
+            }
+        } catch (\Exception $e) {
+            \Log::error('Student authentication error', [
+                'error' => $e->getMessage(),
+                'email' => $this->input('email'),
+                'tenant' => tenant() ? tenant()->id : 'central',
+                'database' => DB::connection()->getDatabaseName()
             ]);
         }
 
-        RateLimiter::clear($this->throttleKey());
+        // Try web guard if student authentication fails
+        try {
+            if (\Auth::guard('web')->attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+                \Log::info('Tenant authentication successful for email: ' . $this->input('email'));
+                \Illuminate\Support\Facades\RateLimiter::clear($this->throttleKey());
+                return;
+            }
+        } catch (\Exception $e) {
+            \Log::error('Tenant authentication error', [
+                'error' => $e->getMessage(),
+                'email' => $this->input('email'),
+                'tenant' => tenant() ? tenant()->id : 'central',
+                'database' => DB::connection()->getDatabaseName()
+            ]);
+        }
+
+        \Illuminate\Support\Facades\RateLimiter::hit($this->throttleKey());
+        \Log::warning('Authentication failed for email: ' . $this->input('email'), [
+            'tenant' => tenant() ? tenant()->id : 'central',
+            'tenant_database' => tenant() ? 'tenant_' . tenant()->id : 'central',
+            'current_database' => DB::connection()->getDatabaseName()
+        ]);
+
+        throw \Illuminate\Validation\ValidationException::withMessages([
+            'email' => trans('auth.failed'),
+        ]);
     }
 
     /**

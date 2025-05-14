@@ -17,25 +17,29 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
-        return view('profile.edit', [
-            'user' => $request->user(),
+        $user = Auth::guard('student')->check() ? Auth::guard('student')->user() : $request->user();
+        return view('app.profile.edit', [
+            'user' => $user,
         ]);
     }
 
     /**
      * Update the user's profile information.
      */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
+    public function update(Request $request)
     {
-        $request->user()->fill($request->validated());
+        $user = Auth::guard('student')->check() ? Auth::guard('student')->user() : $request->user();
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
-        }
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:' . ($user instanceof \App\Models\Student ? 'students' : 'users') . ',email,' . $user->id,
+        ]);
 
-        $request->user()->save();
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->save();
 
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+        return Redirect::back()->with('status', 'profile-updated');
     }
 
     /**
