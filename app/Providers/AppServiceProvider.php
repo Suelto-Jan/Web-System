@@ -38,6 +38,9 @@ class AppServiceProvider extends ServiceProvider
             return "<?php endif; ?>";
         });
 
+        // Register the tenant-app-layout component
+        Blade::component('tenant-app-layout', \App\View\Components\TenantAppLayout::class);
+
         // Share the Route facade with all views
         view()->share('Route', app('router'));
 

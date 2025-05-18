@@ -447,6 +447,42 @@ class SendbirdService
     }
 
     /**
+     * Delete a group channel
+     *
+     * @param string $channelUrl
+     * @return bool
+     */
+    public function deleteChannel(string $channelUrl): bool
+    {
+        try {
+            // Use the client from the constructor which has the correct base URL
+            $endpoint = "group_channels/{$channelUrl}";
+            $fullUrl = config('sendbird.api_url') . '/' . $endpoint;
+
+            Log::info('Making Sendbird delete request to: ' . $fullUrl, [
+                'channel_url' => $channelUrl
+            ]);
+
+            $response = $this->client->delete($endpoint);
+            $statusCode = $response->getStatusCode();
+
+            Log::info('Sendbird channel deleted successfully', [
+                'channel_url' => $channelUrl,
+                'status_code' => $statusCode
+            ]);
+
+            return $statusCode >= 200 && $statusCode < 300;
+        } catch (GuzzleException $e) {
+            Log::error('Sendbird delete channel error: ' . $e->getMessage(), [
+                'channel_url' => $channelUrl,
+                'status_code' => $e->getCode(),
+                'response' => $e->hasResponse() ? $e->getResponse()->getBody()->getContents() : null
+            ]);
+            return false;
+        }
+    }
+
+    /**
      * Upload a file to Sendbird
      *
      * @param string $channelUrl

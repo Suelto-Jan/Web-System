@@ -65,7 +65,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="grid grid-cols-2 gap-3 mb-4">
+                                    <div class="grid grid-cols-3 gap-3 mb-4">
                                         <div class="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3 text-center">
                                             <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Assignments</div>
                                             <div class="text-lg font-semibold text-blue-600 dark:text-blue-400">
@@ -76,6 +76,21 @@
                                             <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Materials</div>
                                             <div class="text-lg font-semibold text-green-600 dark:text-green-400">
                                                 {{ $subject->activities->where('type', 'material')->count() }}
+                                            </div>
+                                        </div>
+                                        <div class="bg-gradient-to-r from-indigo-500 to-blue-600 rounded-lg p-3 text-center">
+                                            <div class="text-xs text-white/80 mb-1">Grade</div>
+                                            @php
+                                                $student = Auth::guard('student')->user();
+                                                $gradeData = $student->calculateFinalGradeForSubject($subject->id);
+                                            @endphp
+                                            <div class="flex flex-col items-center">
+                                                <div class="text-lg font-semibold text-white">
+                                                    {{ $gradeData['grade'] }}%
+                                                </div>
+                                                <div class="mt-1 px-2 py-0.5 rounded-full {{ $gradeData['college_grade'] == '5.0' ? 'bg-red-500/30 text-red-100' : 'bg-green-500/30 text-green-100' }} text-xs font-medium">
+                                                    {{ $gradeData['college_grade'] }} ({{ $gradeData['remarks'] }})
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

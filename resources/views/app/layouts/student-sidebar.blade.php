@@ -64,8 +64,28 @@
                         $pendingAssignments = 0;
                         $student = Auth::guard('student')->user();
                         if ($student) {
-                            foreach($student->subjects as $subject) {
-                                $pendingAssignments += $subject->activities->where('type', 'assignment')->count();
+                            // Get all subjects for the student
+                            $subjects = $student->subjects;
+
+                            // Loop through each subject
+                            foreach($subjects as $subject) {
+                                // Get assignments that are due in the future
+                                $assignments = $subject->activities()
+                                    ->where('type', 'assignment')
+                                    ->where('due_date', '>', now())
+                                    ->get();
+
+                                // For each assignment, check if the student has already submitted it
+                                foreach($assignments as $assignment) {
+                                    $hasSubmission = $student->submissions()
+                                        ->where('activity_id', $assignment->id)
+                                        ->exists();
+
+                                    // Only count assignments that haven't been submitted yet
+                                    if (!$hasSubmission) {
+                                        $pendingAssignments++;
+                                    }
+                                }
                             }
                         }
                     @endphp

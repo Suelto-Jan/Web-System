@@ -36,7 +36,7 @@
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg mb-6">
                 <div class="h-48 relative" style="background-color: {{ $subject->color }};">
                     @if($subject->banner_image)
-                        <img src="{{ Storage::url($subject->banner_image) }}" alt="{{ $subject->name }}" class="w-full h-full object-cover">
+                        <img src="{{ $subject->banner_image }}" alt="{{ $subject->name }}" class="w-full h-full object-cover">
                     @endif
                     <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end">
                         <div class="p-6">
@@ -73,6 +73,9 @@
                                 </svg>
                                 Add Students
                             </button>
+                            <a href="{{ route('subjects.grade-report', $subject->id) }}" class="inline-flex items-center px-3 py-1.5 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors text-sm">
+                                <i class="fas fa-file-pdf mr-1"></i> Grade Report
+                            </a>
                         </div>
                     </div>
 
@@ -129,7 +132,7 @@
                                                 <div class="flex items-center">
                                                     <div class="flex-shrink-0 mr-3">
                                                         @if($student->profile_photo)
-                                                            <img src="{{ Storage::url($student->profile_photo) }}" alt="{{ $student->name }}" class="h-10 w-10 rounded-full object-cover">
+                                                            <img src="{{ $student->profile_photo }}" alt="{{ $student->name }}" class="h-10 w-10 rounded-full object-cover">
                                                         @else
                                                             <div class="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-gray-700 dark:text-gray-300 font-semibold text-lg">
                                                                 {{ substr($student->name, 0, 1) }}
@@ -251,7 +254,7 @@
                                     <div class="flex items-center">
                                         <div class="flex-shrink-0 mr-3">
                                             @if($student->profile_photo)
-                                                <img src="{{ Storage::url($student->profile_photo) }}" alt="{{ $student->name }}" class="h-10 w-10 rounded-full object-cover">
+                                                <img src="{{ $student->profile_photo }}" alt="{{ $student->name }}" class="h-10 w-10 rounded-full object-cover">
                                             @else
                                                 <div class="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-gray-700 dark:text-gray-300 font-semibold text-lg">
                                                     {{ substr($student->name, 0, 1) }}

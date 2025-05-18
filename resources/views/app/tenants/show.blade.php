@@ -129,26 +129,26 @@
                                         </a>
 
                                         @if($tenant->active)
-                                            <form action="{{ route('tenants.disable', $tenant) }}" method="POST" class="w-full sm:w-auto">
+                                            <button type="button" onclick="confirmDisable('{{ $tenant->id }}', '{{ $tenant->name }}')" class="inline-flex items-center justify-center w-full px-4 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl hover:from-orange-600 hover:to-amber-600 shadow-sm hover:shadow transition-all duration-200">
+                                                <i class="fas fa-ban mr-2"></i>
+                                                Disable Tenant
+                                            </button>
+                                            <form id="disable-form-{{ $tenant->id }}" action="{{ route('tenants.disable', $tenant) }}" method="POST" class="hidden">
                                                 @csrf
-                                                <button type="submit" class="inline-flex items-center justify-center w-full px-4 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl hover:from-orange-600 hover:to-amber-600 shadow-sm hover:shadow transition-all duration-200">
-                                                    <i class="fas fa-ban mr-2"></i>
-                                                    Disable Tenant
-                                                </button>
                                             </form>
                                         @else
-                                            <form action="{{ route('tenants.enable', $tenant) }}" method="POST" class="w-full sm:w-auto">
+                                            <button type="button" onclick="confirmEnable('{{ $tenant->id }}', '{{ $tenant->name }}')" class="inline-flex items-center justify-center w-full px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl hover:from-green-600 hover:to-emerald-600 shadow-sm hover:shadow transition-all duration-200">
+                                                <i class="fas fa-check-circle mr-2"></i>
+                                                Enable Tenant
+                                            </button>
+                                            <form id="enable-form-{{ $tenant->id }}" action="{{ route('tenants.enable', $tenant) }}" method="POST" class="hidden">
                                                 @csrf
-                                                <button type="submit" class="inline-flex items-center justify-center w-full px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl hover:from-green-600 hover:to-emerald-600 shadow-sm hover:shadow transition-all duration-200">
-                                                    <i class="fas fa-check-circle mr-2"></i>
-                                                    Enable Tenant
-                                                </button>
                                             </form>
                                         @endif
                                     </div>
 
                                     <div class="pt-2 border-t border-gray-200 dark:border-gray-700">
-                                        
+
                                     </div>
                                 </div>
                             </div>
@@ -164,4 +164,86 @@
             </div>
         </div>
     </div>
+    <!-- Modal for Disable Confirmation -->
+    <div id="disableModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full p-6 transform transition-all">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-orange-100 dark:bg-orange-900/30 mb-4">
+                    <i class="fas fa-exclamation-triangle text-orange-600 dark:text-orange-400 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Disable Tenant</h3>
+                <p class="text-gray-600 dark:text-gray-400 mb-6" id="disableModalText">
+                    Are you sure you want to disable this tenant? Their domain will be inaccessible.
+                </p>
+                <div class="flex justify-center space-x-3">
+                    <button type="button" onclick="closeModal('disableModal')" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="button" id="confirmDisableBtn" class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
+                        Disable
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Enable Confirmation -->
+    <div id="enableModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full p-6 transform transition-all">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/30 mb-4">
+                    <i class="fas fa-check-circle text-green-600 dark:text-green-400 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Enable Tenant</h3>
+                <p class="text-gray-600 dark:text-gray-400 mb-6" id="enableModalText">
+                    Are you sure you want to enable this tenant? Their domain will become accessible again.
+                </p>
+                <div class="flex justify-center space-x-3">
+                    <button type="button" onclick="closeModal('enableModal')" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="button" id="confirmEnableBtn" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                        Enable
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Modal functionality
+        function confirmDisable(tenantId, tenantName) {
+            document.getElementById('disableModalText').textContent = `Are you sure you want to disable ${tenantName}? Their domain will be inaccessible.`;
+            document.getElementById('confirmDisableBtn').onclick = function() {
+                document.getElementById(`disable-form-${tenantId}`).submit();
+            };
+            document.getElementById('disableModal').classList.remove('hidden');
+        }
+
+        function confirmEnable(tenantId, tenantName) {
+            document.getElementById('enableModalText').textContent = `Are you sure you want to enable ${tenantName}? Their domain will become accessible again.`;
+            document.getElementById('confirmEnableBtn').onclick = function() {
+                document.getElementById(`enable-form-${tenantId}`).submit();
+            };
+            document.getElementById('enableModal').classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        // Close modals when clicking outside
+        window.addEventListener('click', function(event) {
+            const disableModal = document.getElementById('disableModal');
+            const enableModal = document.getElementById('enableModal');
+
+            if (event.target === disableModal) {
+                closeModal('disableModal');
+            }
+
+            if (event.target === enableModal) {
+                closeModal('enableModal');
+            }
+        });
+    </script>
 </x-app-layout>

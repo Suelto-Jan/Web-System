@@ -185,7 +185,6 @@ class SubscriptionController extends Controller
                 'email' => $application->email,
                 'password' => $password,
                 'active' => true,
-                'plan' => $application->subscription_plan,
                 'data' => [
                 'company_name' => $application->company_name,
                     'full_name' => $application->full_name,

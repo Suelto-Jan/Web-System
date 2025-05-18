@@ -65,7 +65,7 @@
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Current Banner Image</label>
                                 <div class="mt-2">
-                                    <img src="{{ Storage::url($subject->banner_image) }}" alt="{{ $subject->name }}" class="h-32 w-full object-cover rounded-md">
+                                    <img src="{{ $subject->banner_image }}" alt="{{ $subject->name }}" class="h-32 w-full object-cover rounded-md">
                                 </div>
                             </div>
                         @endif

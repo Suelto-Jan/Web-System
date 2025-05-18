@@ -355,6 +355,39 @@ class ChatController extends Controller
     }
 
     /**
+     * Delete a chat channel
+     *
+     * @param string $channelUrl
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function destroy($channelUrl)
+    {
+        $user = Auth::user();
+        $channel = Sendbird::getGroupChannel($channelUrl);
+
+        if (!$channel) {
+            return redirect()->route('chat.index')->with('error', 'Chat not found');
+        }
+
+        // Delete the channel
+        $success = Sendbird::deleteChannel($channelUrl);
+
+        if ($success) {
+            Log::info('Chat deleted successfully', [
+                'channel_url' => $channelUrl,
+                'user_id' => $user->id
+            ]);
+            return redirect()->route('chat.index')->with('success', 'Chat deleted successfully');
+        } else {
+            Log::error('Failed to delete chat', [
+                'channel_url' => $channelUrl,
+                'user_id' => $user->id
+            ]);
+            return redirect()->route('chat.index')->with('error', 'Failed to delete chat');
+        }
+    }
+
+    /**
      * Create a new chat with students from a specific subject
      *
      * @param Request $request

@@ -339,6 +339,39 @@ class StudentChatController extends Controller
     }
 
     /**
+     * Delete a chat channel (for students)
+     *
+     * @param string $channelUrl
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function destroy($channelUrl)
+    {
+        $student = Auth::guard('student')->user();
+        $channel = Sendbird::getGroupChannel($channelUrl);
+
+        if (!$channel) {
+            return redirect()->route('student.chat.index')->with('error', 'Chat not found');
+        }
+
+        // Delete the channel
+        $success = Sendbird::deleteChannel($channelUrl);
+
+        if ($success) {
+            Log::info('Student chat deleted successfully', [
+                'channel_url' => $channelUrl,
+                'user_id' => $student->id
+            ]);
+            return redirect()->route('student.chat.index')->with('success', 'Chat deleted successfully');
+        } else {
+            Log::error('Failed to delete student chat', [
+                'channel_url' => $channelUrl,
+                'user_id' => $student->id
+            ]);
+            return redirect()->route('student.chat.index')->with('error', 'Failed to delete chat');
+        }
+    }
+
+    /**
      * Create a new chat with the teacher of a specific subject (for students)
      *
      * @param Request $request

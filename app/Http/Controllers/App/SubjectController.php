@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Subject;
 use App\Models\Student;
 use App\Models\Submission;
+use App\Services\CloudinaryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -13,6 +14,12 @@ use Illuminate\Support\Facades\Log;
 
 class SubjectController extends Controller
 {
+    protected $cloudinaryService;
+
+    public function __construct(CloudinaryService $cloudinaryService)
+    {
+        $this->cloudinaryService = $cloudinaryService;
+    }
     /**
      * Display a listing of the resource.
      */
@@ -59,8 +66,18 @@ class SubjectController extends Controller
 
         // Handle banner image upload
         if ($request->hasFile('banner_image')) {
-            $path = $request->file('banner_image')->store('subject-banners', 'public');
-            $data['banner_image'] = $path;
+            try {
+                $cloudinaryUrl = $this->cloudinaryService->uploadImage($request->file('banner_image'), 'subject-banners');
+                if ($cloudinaryUrl) {
+                    $data['banner_image'] = $cloudinaryUrl;
+                    Log::info('Banner image uploaded', ['url' => $cloudinaryUrl]);
+                }
+            } catch (\Exception $e) {
+                Log::error('Exception during banner image upload: ' . $e->getMessage(), [
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine()
+                ]);
+            }
         }
 
         Subject::create($data);
@@ -164,8 +181,29 @@ class SubjectController extends Controller
 
         // Handle banner image upload
         if ($request->hasFile('banner_image')) {
-            $path = $request->file('banner_image')->store('subject-banners', 'public');
-            $data['banner_image'] = $path;
+            try {
+                // Delete old image if exists
+                if ($subject->banner_image && strpos($subject->banner_image, 'cloudinary') !== false) {
+                    try {
+                        $this->cloudinaryService->deleteImage($subject->banner_image);
+                        Log::info('Old banner image deleted from Cloudinary');
+                    } catch (\Exception $e) {
+                        Log::warning('Failed to delete old banner image: ' . $e->getMessage());
+                    }
+                }
+
+                // Upload new image
+                $cloudinaryUrl = $this->cloudinaryService->uploadImage($request->file('banner_image'), 'subject-banners');
+                if ($cloudinaryUrl) {
+                    $data['banner_image'] = $cloudinaryUrl;
+                    Log::info('New banner image uploaded', ['url' => $cloudinaryUrl]);
+                }
+            } catch (\Exception $e) {
+                Log::error('Exception during banner image upload: ' . $e->getMessage(), [
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine()
+                ]);
+            }
         }
 
         $subject->update($data);
@@ -184,6 +222,16 @@ class SubjectController extends Controller
         // Check if the user owns this subject
         if ($subject->user_id !== Auth::id()) {
             abort(403, 'Unauthorized action.');
+        }
+
+        // Delete banner image from Cloudinary if exists
+        if ($subject->banner_image && strpos($subject->banner_image, 'cloudinary') !== false) {
+            try {
+                $this->cloudinaryService->deleteImage($subject->banner_image);
+                Log::info('Banner image deleted from Cloudinary during subject deletion');
+            } catch (\Exception $e) {
+                Log::warning('Failed to delete banner image during subject deletion: ' . $e->getMessage());
+            }
         }
 
         $subject->delete();

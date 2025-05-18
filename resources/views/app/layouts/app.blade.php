@@ -155,6 +155,10 @@
                 background: linear-gradient(-45deg, var(--primary-color), var(--secondary-color), var(--accent-color), #ec4899);
                 background-size: 400% 400%;
                 animation: gradient 15s ease infinite;
+                background-image: url('https://images.unsplash.com/photo-1571260899304-425eee4c7efc?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80');
+                background-blend-mode: overlay;
+                background-position: center;
+                background-size: cover;
             }
 
             /* Soft gradient backgrounds */
@@ -280,6 +284,8 @@
         </style>
     </head>
     <body class="font-sans antialiased">
+        <!-- Icon Persistence Script - Load Early -->
+        <script src="{{ tenant_asset('js/icon-persistence.js') }}"></script>
         <div class="bg-gray-50 dark:bg-gray-900">
             <!-- Top Navigation -->
             @if(Auth::guard('student')->check())
@@ -340,6 +346,8 @@
                 </div>
             </div>
         </div>
+        <!-- Emergency fix for icon selector -->
+        <script src="{{ asset('js/fix-icon-selector.js') }}"></script>
         @stack('scripts')
     </body>
 </html>

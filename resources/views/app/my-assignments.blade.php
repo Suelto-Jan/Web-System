@@ -13,8 +13,30 @@
                 <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
                     <i class="fas fa-check-circle mr-1.5"></i> {{ $submissions->count() }} Submitted
                 </span>
+                @php
+                    // Count truly pending assignments (not submitted yet)
+                    $pendingCount = 0;
+                    $pendingReviewCount = 0;
+
+                    foreach($activeActivities as $activity) {
+                        $hasSubmission = false;
+                        foreach($submissions as $sub) {
+                            if ($sub->activity_id == $activity->id && $sub->grade === null) {
+                                $hasSubmission = true;
+                                $pendingReviewCount++;
+                                break;
+                            }
+                        }
+                        if (!$hasSubmission) {
+                            $pendingCount++;
+                        }
+                    }
+                @endphp
                 <span class="ml-2 inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
-                    <i class="fas fa-hourglass-half mr-1.5"></i> {{ $activeActivities->count() }} Pending
+                    <i class="fas fa-hourglass-half mr-1.5"></i> {{ $pendingCount }} Pending
+                </span>
+                <span class="ml-2 inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                    <i class="fas fa-clock mr-1.5"></i> {{ $pendingReviewCount }} Awaiting Review
                 </span>
             </div>
         </div>
@@ -77,26 +99,55 @@
                                     </div>
                                 </div>
 
-                                <!-- Submission Form -->
-                                <div class="bg-yellow-50 dark:bg-yellow-900/10 rounded-xl p-4 border border-yellow-100 dark:border-yellow-900/30">
-                                    <h5 class="font-medium text-yellow-800 dark:text-yellow-300 mb-3 flex items-center">
-                                        <i class="fas fa-upload mr-2"></i> Submit Your Work
-                                    </h5>
-                                    <form action="{{ route('submissions.store') }}" method="POST" enctype="multipart/form-data">
-                                        @csrf
-                                        <input type="hidden" name="activity_id" value="{{ $activity->id }}">
-                                        <div class="flex flex-col md:flex-row md:items-center md:space-x-4">
-                                            <div class="flex-1 mb-3 md:mb-0">
-                                                <input type="file" name="file" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-yellow-100 file:text-yellow-700 hover:file:bg-yellow-200 dark:file:bg-yellow-900/30 dark:file:text-yellow-300 dark:hover:file:bg-yellow-900/40" required>
-                                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Upload any file type (max 20MB)</p>
+                                <!-- Submission Form or Status -->
+                                @php
+                                    $hasSubmission = false;
+                                    $submission = null;
+
+                                    // Check if this activity has a submission that's not graded yet
+                                    foreach($submissions as $sub) {
+                                        if ($sub->activity_id == $activity->id && $sub->grade === null) {
+                                            $hasSubmission = true;
+                                            $submission = $sub;
+                                            break;
+                                        }
+                                    }
+                                @endphp
+
+                                @if($hasSubmission)
+                                    <div class="bg-blue-50 dark:bg-blue-900/10 rounded-xl p-4 border border-blue-100 dark:border-blue-900/30">
+                                        <h5 class="font-medium text-blue-800 dark:text-blue-300 mb-3 flex items-center">
+                                            <i class="fas fa-hourglass-half mr-2"></i> Submission Pending Review
+                                        </h5>
+                                        <div class="flex items-center mb-3">
+                                            <div class="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 mr-3">
+                                                <i class="fas fa-file-alt"></i>
                                             </div>
-                                            <button type="submit" class="inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-yellow-500 to-amber-500 text-white rounded-lg hover:from-yellow-600 hover:to-amber-600 transition-all duration-200 text-sm font-medium shadow-sm">
-                                                <i class="fas fa-paper-plane mr-1.5"></i>
-                                                Submit Assignment
-                                            </button>
+                                            <span class="text-sm text-gray-600 dark:text-gray-300">{{ basename($submission->file_path) }}</span>
                                         </div>
-                                    </form>
-                                </div>
+                                        <p class="text-sm text-gray-600 dark:text-gray-300">Your submission has been received and is waiting to be graded by your teacher.</p>
+                                    </div>
+                                @else
+                                    <div class="bg-yellow-50 dark:bg-yellow-900/10 rounded-xl p-4 border border-yellow-100 dark:border-yellow-900/30">
+                                        <h5 class="font-medium text-yellow-800 dark:text-yellow-300 mb-3 flex items-center">
+                                            <i class="fas fa-upload mr-2"></i> Submit Your Work
+                                        </h5>
+                                        <form action="{{ route('submissions.store') }}" method="POST" enctype="multipart/form-data">
+                                            @csrf
+                                            <input type="hidden" name="activity_id" value="{{ $activity->id }}">
+                                            <div class="flex flex-col md:flex-row md:items-center md:space-x-4">
+                                                <div class="flex-1 mb-3 md:mb-0">
+                                                    <input type="file" name="file" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-yellow-100 file:text-yellow-700 hover:file:bg-yellow-200 dark:file:bg-yellow-900/30 dark:file:text-yellow-300 dark:hover:file:bg-yellow-900/40" required>
+                                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Upload any file type (max 20MB)</p>
+                                                </div>
+                                                <button type="submit" class="inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-yellow-500 to-amber-500 text-white rounded-lg hover:from-yellow-600 hover:to-amber-600 transition-all duration-200 text-sm font-medium shadow-sm">
+                                                    <i class="fas fa-paper-plane mr-1.5"></i>
+                                                    Submit Assignment
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                @endif
 
                                 <div class="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700 text-right">
                                     <div class="text-xs text-gray-500 dark:text-gray-400 flex items-center justify-end">
@@ -192,10 +243,7 @@
                                                     Preview
                                                 </button>
                                             @endif
-                                            <a href="{{ route('submissions.download', $submission) }}" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 text-sm font-medium shadow-sm">
-                                                <i class="fas fa-download mr-1.5"></i>
-                                                Download
-                                            </a>
+
                                         </div>
                                     </div>
                                 </div>

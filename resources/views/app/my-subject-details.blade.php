@@ -54,9 +54,76 @@
                                     </div>
                                 </div>
                                 <div class="mt-2">
-                                    <a href="{{ route('student.subjects.chat.create', $subject->id) }}" class="inline-flex items-center px-3 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors text-sm">
-                                        <i class="fas fa-comments mr-2"></i> Chat with Teacher
-                                    </a>
+                                
+                                </div>
+                            </div>
+
+                            <!-- Final Grade Card -->
+                            <div class="mt-6 mb-6">
+                                <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Your Performance</h4>
+                                <div class="bg-gradient-to-r from-indigo-500 to-blue-600 p-4 rounded-lg text-white shadow-md">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div class="flex items-center">
+                                            <div class="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center mr-3">
+                                                <i class="fas fa-chart-line text-white"></i>
+                                            </div>
+                                            <div>
+                                                <h5 class="font-bold text-lg">Final Grade</h5>
+                                                <p class="text-blue-100 text-sm">Based on your submissions and quiz results</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="flex items-center justify-end">
+                                                <div class="text-3xl font-bold mr-3">{{ $gradeData['grade'] }}%</div>
+                                                <div class="flex flex-col items-center justify-center bg-white/20 rounded-lg px-3 py-2">
+                                                    <span class="text-xs text-blue-100">College Grade</span>
+                                                    <span class="text-2xl font-bold {{ $gradeData['college_grade'] == '5.0' ? 'text-red-300' : 'text-green-300' }}">
+                                                        {{ $gradeData['college_grade'] }}
+                                                    </span>
+                                                    <span class="text-xs text-blue-100">{{ $gradeData['remarks'] }}</span>
+                                                </div>
+                                            </div>
+                                            <div class="text-blue-100 text-sm mt-1">
+                                                {{ $gradeData['completed_activities'] }}/{{ $gradeData['total_activities'] }} activities completed
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="w-full bg-white/20 rounded-full h-2.5 mb-1">
+                                        <div class="bg-white h-2.5 rounded-full" style="width: {{ $gradeData['grade'] }}%"></div>
+                                    </div>
+                                    <div class="flex justify-between text-xs text-blue-100">
+                                        <span>0%</span>
+                                        <span>50%</span>
+                                        <span>100%</span>
+                                    </div>
+
+                                    <!-- College Grade Scale Legend -->
+                                    <div class="mt-3 pt-3 border-t border-white/20">
+                                        <div class="text-xs text-blue-100 mb-2">College Grade Scale:</div>
+                                        <div class="grid grid-cols-5 gap-1 text-xs">
+                                            <div class="text-center">
+                                                <span class="block text-green-300 font-bold">1.0-1.75</span>
+                                                <span class="text-blue-100">Excellent</span>
+                                            </div>
+                                            <div class="text-center">
+                                                <span class="block text-green-300 font-bold">2.0-2.25</span>
+                                                <span class="text-blue-100">Very Satisfactory</span>
+                                            </div>
+                                            <div class="text-center">
+                                                <span class="block text-green-300 font-bold">2.5-2.75</span>
+                                                <span class="text-blue-100">Satisfactory</span>
+                                            </div>
+                                            <div class="text-center">
+                                                <span class="block text-green-300 font-bold">3.0</span>
+                                                <span class="text-blue-100">Passed</span>
+                                            </div>
+                                            <div class="text-center">
+                                                <span class="block text-red-300 font-bold">5.0</span>
+                                                <span class="text-blue-100">Failed</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 

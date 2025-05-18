@@ -135,7 +135,10 @@ Route::middleware([
         $subject->load(['user', 'activities.quiz']);
         $classmates = $subject->students()->where('students.id', '!=', $student->id)->get();
 
-        return view('app.my-subject-details', compact('subject', 'classmates', 'student'));
+        // Calculate the final grade for this subject
+        $gradeData = $student->calculateFinalGradeForSubject($subject->id);
+
+        return view('app.my-subject-details', compact('subject', 'classmates', 'student', 'gradeData'));
     })->middleware(['auth:student'])->name('student.subject.show');
 
     // Student's Assignments route
@@ -158,6 +161,21 @@ Route::middleware([
             ->get()
             ->pluck('activities')
             ->flatten();
+
+        // Get activities that have submissions but are not graded yet
+        $pendingGradedActivities = $student->subjects()
+            ->with(['activities' => function($query) use ($student) {
+                $query->whereHas('submissions', function($q) use ($student) {
+                    $q->where('student_id', $student->id)
+                      ->whereNull('grade');
+                });
+            }])
+            ->get()
+            ->pluck('activities')
+            ->flatten();
+
+        // Merge the active activities with pending graded activities
+        $activeActivities = $activeActivities->merge($pendingGradedActivities)->unique('id');
 
         return view('app.my-assignments', compact('submissions', 'activeActivities'));
     })->middleware(['auth:student'])->name('student.assignments');
@@ -279,6 +297,7 @@ Route::middleware([
         Route::resource('subjects', SubjectController::class);
         Route::post('/subjects/{subject}/students', [SubjectController::class, 'addStudents'])->name('subjects.students.add');
         Route::delete('/subjects/{subject}/students/{student}', [SubjectController::class, 'removeStudent'])->name('subjects.students.remove');
+        Route::get('/subjects/{subject}/grade-report', [\App\Http\Controllers\App\GradeReportController::class, 'generateReport'])->name('subjects.grade-report');
 
         // Students
         Route::resource('students', StudentController::class);
@@ -328,6 +347,7 @@ Route::middleware([
         Route::post('/chat', [ChatController::class, 'store'])->name('chat.store');
         Route::get('/chat/{channelUrl}', [ChatController::class, 'show'])->name('chat.show');
         Route::post('/chat/{channelUrl}/send', [ChatController::class, 'sendMessage'])->name('chat.send');
+        Route::delete('/chat/{channelUrl}', [ChatController::class, 'destroy'])->name('chat.destroy');
 
         // Catch-all route for Sendbird URLs - redirect to our custom chat view
         Route::get('/chat/sendbird_group_channel_{channelUrl}', function($channelUrl) {
@@ -353,6 +373,7 @@ Route::middleware([
         Route::post('/student/chat', [StudentChatController::class, 'store'])->name('student.chat.store');
         Route::get('/student/chat/{channelUrl}', [StudentChatController::class, 'show'])->name('student.chat.show');
         Route::post('/student/chat/{channelUrl}/send', [StudentChatController::class, 'sendMessage'])->name('student.chat.send');
+        Route::delete('/student/chat/{channelUrl}', [StudentChatController::class, 'destroy'])->name('student.chat.destroy');
 
         // Subject-specific chat routes for students
         Route::get('/student/subjects/{subject}/chat/create', [StudentChatController::class, 'createSubjectChat'])->name('student.subjects.chat.create');
