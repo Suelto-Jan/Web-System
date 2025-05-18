@@ -41,7 +41,7 @@
                             </div>
                             <div>
                                 <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Submitted At</p>
-                                <p class="text-gray-900 dark:text-white">{{ $submission->submitted_at->format('M d, Y H:i') }}</p>
+                                <p class="text-gray-900 dark:text-white">{{ $submission->created_at->format('M d, Y H:i') }}</p>
                             </div>
                             <div>
                                 <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Status</p>
@@ -94,9 +94,9 @@
                                                 Preview (Limited)
                                             </a>
                                             <div class="text-sm text-gray-500 dark:text-gray-400">
-                                                <a href="{{ route('subscription.upgrade') }}" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
+                                                <span class="text-indigo-600 dark:text-indigo-400">
                                                     Upgrade to Premium for full access
-                                                </a>
+                                                </span>
                                             </div>
                                         </div>
                                     @endif
@@ -158,4 +158,4 @@
             </div>
         </div>
     </div>
-</x-tenant-app-layout> 
+</x-tenant-app-layout>

@@ -30,36 +30,18 @@ class ProfileController extends Controller
     {
         $user = Auth::guard('student')->check() ? Auth::guard('student')->user() : $request->user();
 
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:' . ($user instanceof \App\Models\Student ? 'students' : 'users') . ',email,' . $user->id,
-        ]);
+        // Only validate and update profile photo if it's present in the request
+        if ($request->hasFile('profile_photo')) {
+            $request->validate([
+                'profile_photo' => 'image|max:2048', // 2MB max
+            ]);
 
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->save();
+            // Handle profile photo upload
+            $path = $request->file('profile_photo')->store('profile-photos', 'public');
+            $user->profile_photo = '/storage/' . $path;
+            $user->save();
+        }
 
         return Redirect::back()->with('status', 'profile-updated');
-    }
-
-    /**
-     * Delete the user's account.
-     */
-    public function destroy(Request $request): RedirectResponse
-    {
-        $request->validateWithBag('userDeletion', [
-            'password' => ['required', 'current_password'],
-        ]);
-
-        $user = $request->user();
-
-        Auth::logout();
-
-        $user->delete();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return Redirect::to('/');
     }
 }

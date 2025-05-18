@@ -6,8 +6,11 @@ use App\Models\TenantApplication;
 use App\Notifications\TenantApplicationApproved;
 use App\Notifications\TenantApplicationRejected;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class SubscriptionController extends Controller
@@ -25,7 +28,7 @@ class SubscriptionController extends Controller
      */
     public function apply(Request $request)
     {
-        $validator = \Validator::make($request->all(), [
+        $validator = Validator::make($request->all(), [
             'full_name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'company_name' => 'required|string|max:255',
@@ -93,21 +96,21 @@ class SubscriptionController extends Controller
     {
         // First, check if tenant_0 database exists to prevent issues
         try {
-            $tenant0Exists = \DB::select("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?", ['tenant_0']);
+            $tenant0Exists = DB::select("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?", ['tenant_0']);
             if ($tenant0Exists) {
-                \Log::warning('tenant_0 database already exists - this could cause issues with tenant creation');
+                Log::warning('tenant_0 database already exists - this could cause issues with tenant creation');
 
                 // If tenant_0 database exists, we need to be extra careful
                 // Let's check if there's a tenant with ID '0' in the database
                 $zeroTenant = \App\Models\Tenant::find('0');
                 if ($zeroTenant) {
-                    \Log::warning('Found tenant with ID 0, this is problematic', ['tenant' => $zeroTenant]);
+                    Log::warning('Found tenant with ID 0, this is problematic', ['tenant' => $zeroTenant]);
                     // We could delete this tenant, but that might cause data loss
                     // Instead, let's just log it and be extra careful with our ID generation
                 }
             }
         } catch (\Exception $e) {
-            \Log::warning('Error checking for tenant_0 database: ' . $e->getMessage());
+            Log::warning('Error checking for tenant_0 database: ' . $e->getMessage());
         }
 
         // Update application status
@@ -122,21 +125,21 @@ class SubscriptionController extends Controller
 
         // Validate the domain name
         if (empty($application->domain_name)) {
-            \Log::warning('Empty domain name', ['application_id' => $application->id]);
+            Log::warning('Empty domain name', ['application_id' => $application->id]);
             return redirect()->route('applications.index')
                 ->with('error', "Failed to create tenant: Domain name cannot be empty.");
         }
 
         // Ensure domain name only contains valid characters
         if (!preg_match('/^[a-z0-9-]+$/i', $application->domain_name)) {
-            \Log::warning('Invalid domain name format', ['domain_name' => $application->domain_name]);
+            Log::warning('Invalid domain name format', ['domain_name' => $application->domain_name]);
             return redirect()->route('applications.index')
                 ->with('error', "Failed to create tenant: Domain name can only contain letters, numbers, and hyphens.");
         }
 
         // Ensure domain name is not just a number (to avoid tenant_0 issue)
         if (is_numeric($application->domain_name)) {
-            \Log::warning('Numeric domain name', ['domain_name' => $application->domain_name]);
+            Log::warning('Numeric domain name', ['domain_name' => $application->domain_name]);
             return redirect()->route('applications.index')
                 ->with('error', "Failed to create tenant: Domain name cannot be just a number. Please include letters.");
         }
@@ -147,14 +150,14 @@ class SubscriptionController extends Controller
         // Remove port if present
         $domain = preg_replace('/:\d+$/', '', $domain);
 
-        \Log::info('Domain name validated and formatted', [
+        Log::info('Domain name validated and formatted', [
             'original_domain_name' => $application->domain_name,
             'formatted_domain' => $domain
         ]);
 
         // Check if domain already exists
         if (\Stancl\Tenancy\Database\Models\Domain::where('domain', $domain)->exists()) {
-            \Log::warning('Domain already exists', ['domain' => $domain]);
+            Log::warning('Domain already exists', ['domain' => $domain]);
             return redirect()->route('applications.index')
                 ->with('error', "Failed to create tenant: The domain {$domain} is already in use.");
         }
@@ -170,7 +173,7 @@ class SubscriptionController extends Controller
             $tenantId = "tenant_{$timestamp}_" . Str::uuid()->toString();
         }
 
-        \Log::info('Generated tenant ID', [
+        Log::info('Generated tenant ID', [
             'tenant_id' => $tenantId,
             'expected_database_name' => 'tenant_' . $tenantId
         ]);
@@ -182,6 +185,7 @@ class SubscriptionController extends Controller
                 'email' => $application->email,
                 'password' => $password,
                 'active' => true,
+                'plan' => $application->subscription_plan,
                 'data' => [
                 'company_name' => $application->company_name,
                     'full_name' => $application->full_name,
@@ -201,7 +205,7 @@ class SubscriptionController extends Controller
                 $domainName = strtolower($application->domain_name);
             $domain = $domainName . '.localhost';
 
-                \Log::info('Attempting to create tenant domain', [
+                Log::info('Attempting to create tenant domain', [
                     'tenant_id' => $tenant->id,
                     'domain' => $domain
                 ]);
@@ -213,7 +217,7 @@ class SubscriptionController extends Controller
                     // If domain exists but belongs to another tenant, create a unique one
                     if ($existingDomain->tenant_id !== $tenant->id) {
                         $uniqueDomain = $domainName . '-' . Str::random(4) . '.' . config('app.domain');
-                        \Log::info('Domain already exists, creating unique domain', [
+                        Log::info('Domain already exists, creating unique domain', [
                             'original_domain' => $domain,
                             'new_domain' => $uniqueDomain
                         ]);
@@ -223,14 +227,14 @@ class SubscriptionController extends Controller
                     } else {
                         // Domain already belongs to this tenant
                         $tenantDomain = $existingDomain;
-                        \Log::info('Domain already belongs to this tenant', [
+                        Log::info('Domain already belongs to this tenant', [
                             'domain' => $domain
                         ]);
                     }
                 } else {
                     // Create the domain
                     $tenantDomain = $tenant->domains()->create(['domain' => $domain]);
-                    \Log::info('Domain created successfully', [
+                    Log::info('Domain created successfully', [
                         'domain' => $domain
                     ]);
                 }
@@ -239,7 +243,7 @@ class SubscriptionController extends Controller
 
             } catch (\Exception $e) {
                 // If domain creation fails, try with a fallback domain
-                \Log::error('Failed to create domain: ' . $e->getMessage(), [
+                Log::error('Failed to create domain: ' . $e->getMessage(), [
                     'tenant_id' => $tenant->id,
                     'exception' => $e
                 ]);
@@ -247,17 +251,17 @@ class SubscriptionController extends Controller
                 try {
                     // Create a fallback domain using the tenant ID
                     $fallbackDomain = 'tenant-' . $tenant->id . '.' . config('app.domain');
-                    \Log::info('Creating fallback domain', ['domain' => $fallbackDomain]);
+                    Log::info('Creating fallback domain', ['domain' => $fallbackDomain]);
 
                     $tenantDomain = $tenant->domains()->create(['domain' => $fallbackDomain]);
                     $domain = $fallbackDomain;
                     $domainCreated = true;
 
-                    \Log::info('Fallback domain created successfully', [
+                    Log::info('Fallback domain created successfully', [
                         'domain' => $domain
                     ]);
                 } catch (\Exception $fallbackException) {
-                    \Log::critical('Failed to create fallback domain: ' . $fallbackException->getMessage());
+                    Log::critical('Failed to create fallback domain: ' . $fallbackException->getMessage());
                     $domainCreated = false;
                 }
             }
@@ -266,21 +270,21 @@ class SubscriptionController extends Controller
             $application->tenant_id = $tenant->id;
             $application->save();
 
-            \Log::info('Tenant application updated with tenant ID', [
+            Log::info('Tenant application updated with tenant ID', [
                 'application_id' => $application->id,
                 'tenant_id' => $tenant->id
             ]);
 
             // Manually run migrations for the tenant using the --tenant option
             try {
-                \Log::info('Running migrations for tenant', [
+                Log::info('Running migrations for tenant', [
                     'tenant_id' => $tenant->id,
                     'database_name' => 'tenant_' . $tenant->id
                 ]);
 
                 // Double-check that the tenant ID is valid before running migrations
                 if ($tenant->id === '0' || empty($tenant->id)) {
-                    \Log::error('Cannot run migrations for tenant with invalid ID', ['tenant_id' => $tenant->id]);
+                    Log::error('Cannot run migrations for tenant with invalid ID', ['tenant_id' => $tenant->id]);
                     throw new \Exception('Invalid tenant ID for migrations: ' . $tenant->id);
                 }
 
@@ -290,9 +294,9 @@ class SubscriptionController extends Controller
                     '--force' => true,
                 ]);
 
-                \Log::info('Tenant migrations completed: ' . \Illuminate\Support\Facades\Artisan::output());
+                Log::info('Tenant migrations completed: ' . \Illuminate\Support\Facades\Artisan::output());
             } catch (\Exception $e) {
-                \Log::error('Error running tenant migrations: ' . $e->getMessage(), [
+                Log::error('Error running tenant migrations: ' . $e->getMessage(), [
                     'tenant_id' => $tenant->id,
                     'database_name' => 'tenant_' . $tenant->id,
                     'exception' => $e
@@ -304,7 +308,7 @@ class SubscriptionController extends Controller
             try {
                 (new \App\Jobs\SeedTenantJob($tenant))->handle();
             } catch (\Exception $e) {
-                \Log::error('Error seeding tenant database: ' . $e->getMessage(), [
+                Log::error('Error seeding tenant database: ' . $e->getMessage(), [
                     'tenant_id' => $tenant->id,
                     'exception' => $e
                 ]);
@@ -325,7 +329,7 @@ class SubscriptionController extends Controller
                 });
             } catch (\Exception $e) {
                 // Log the error but don't stop the process
-                \Log::error('Failed to send tenant approval email: ' . $e->getMessage());
+                Log::error('Failed to send tenant approval email: ' . $e->getMessage());
             }
 
             // Create a success message that includes the domain information
@@ -357,7 +361,7 @@ class SubscriptionController extends Controller
                 ->notify(new TenantApplicationRejected($application));
         } catch (\Exception $e) {
             // Log the error but don't stop the process
-            \Log::error('Failed to send tenant rejection email: ' . $e->getMessage());
+            Log::error('Failed to send tenant rejection email: ' . $e->getMessage());
         }
 
         return redirect()->route('applications.index')

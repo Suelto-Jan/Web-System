@@ -14,8 +14,13 @@ class AuthenticatedSessionController extends Controller
     /**
      * Display the login view.
      */
-    public function create(): View
+    public function create(Request $request): View
     {
+        // Check if this is a student login route
+        if ($request->route()->getName() === 'student.login') {
+            return view('app.auth.student-login');
+        }
+
         return view('app.auth.login');
     }
 

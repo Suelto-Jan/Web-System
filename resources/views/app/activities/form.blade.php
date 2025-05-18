@@ -37,10 +37,15 @@
     </div>
 
     <!-- Activity Document -->
-    <div>
+    <div id="activityDocumentField" class="p-4 rounded-lg border">
         <x-input-label for="activity_document" :value="__('Activity Document (PDF, DOC, DOCX)')" />
         <input type="file" id="activity_document" name="activity_document" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" accept=".pdf,.doc,.docx" />
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Maximum file size: 10MB</p>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Maximum file size: 10MB
+            <span class="material-note hidden text-green-600 dark:text-green-400 font-medium ml-2">
+                <i class="fas fa-info-circle"></i> Important for material type activities
+            </span>
+        </p>
         @if($activity?->activity_document_path)
             <div class="mt-2">
                 <a href="{{ Storage::url($activity->activity_document_path) }}" target="_blank" class="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">
@@ -52,10 +57,15 @@
     </div>
 
     <!-- Reviewer Attachment (PDF only) -->
-    <div>
+    <div id="reviewerAttachmentField" class="p-4 rounded-lg border">
         <x-input-label for="reviewer_attachment" :value="__('Reviewer Attachment (PDF only)')" />
         <input type="file" id="reviewer_attachment" name="reviewer_attachment" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" accept=".pdf" />
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Maximum file size: 10MB</p>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Maximum file size: 10MB
+            <span class="material-note hidden text-green-600 dark:text-green-400 font-medium ml-2">
+                <i class="fas fa-info-circle"></i> Useful for reference materials
+            </span>
+        </p>
         @if($activity?->reviewer_attachment_path)
             <div class="mt-2">
                 <a href="{{ Storage::url($activity->reviewer_attachment_path) }}" target="_blank" class="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">
@@ -72,4 +82,4 @@
         <x-text-input id="google_docs_url" name="google_docs_url" type="url" class="mt-1 block w-full" :value="old('google_docs_url', $activity?->google_docs_url)" placeholder="https://docs.google.com/document/d/..." />
         <x-input-error class="mt-2" :messages="$errors->get('google_docs_url')" />
     </div>
-</div> 
+</div>

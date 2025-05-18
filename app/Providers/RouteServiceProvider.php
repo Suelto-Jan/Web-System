@@ -51,8 +51,16 @@ class RouteServiceProvider extends ServiceProvider
         }
 
         // Register routes for tenant domains
-        Route::middleware(['web', 'tenant'])
-            ->group(base_path('routes/tenant.php'));
+        if (file_exists(base_path('routes/tenant.php'))) {
+            Route::middleware(['web', 'tenant'])
+                ->group(base_path('routes/tenant.php'));
+        }
+
+        // Register auth routes
+        if (file_exists(base_path('routes/auth.php'))) {
+            Route::middleware('web')
+                ->group(base_path('routes/auth.php'));
+        }
     }
     protected function centralDomains(): array
     {

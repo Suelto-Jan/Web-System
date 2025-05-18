@@ -60,6 +60,15 @@ return [
             'report' => false,
         ],
 
+        'cloudinary' => [
+            'driver' => 'cloudinary',
+            'cloud_name' => env('CLOUDINARY_CLOUD_NAME', 'dbyoethmb'),
+            'api_key' => env('CLOUDINARY_KEY', '496563398834249'),
+            'api_secret' => env('CLOUDINARY_SECRET', 'FB1zjyKMSVaXnOdDRWPxl8D50y8'),
+            'url' => env('CLOUDINARY_URL'),
+            'secure' => true,
+        ],
+
     ],
 
     /*

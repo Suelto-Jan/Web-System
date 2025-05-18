@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class StudentController extends Controller
@@ -110,13 +111,32 @@ class StudentController extends Controller
 
             // Handle profile photo upload
             if ($request->hasFile('profile_photo')) {
-                \Log::info('Profile photo detected, attempting upload');
-                $cloudinaryUrl = $this->cloudinaryService->uploadImage($request->file('profile_photo'), 'student-photos');
-                if ($cloudinaryUrl) {
-                    $data['profile_photo'] = $cloudinaryUrl;
-                    \Log::info('Profile photo uploaded', ['url' => $cloudinaryUrl]);
-                } else {
-                    \Log::warning('Profile photo upload failed');
+                \Log::info('Profile photo detected, attempting upload', [
+                    'file_name' => $request->file('profile_photo')->getClientOriginalName(),
+                    'file_size' => $request->file('profile_photo')->getSize(),
+                    'file_mime' => $request->file('profile_photo')->getMimeType(),
+                ]);
+
+                try {
+                    $cloudinaryUrl = $this->cloudinaryService->uploadImage($request->file('profile_photo'), 'student-photos');
+                    if ($cloudinaryUrl) {
+                        $data['profile_photo'] = $cloudinaryUrl;
+                        \Log::info('Profile photo uploaded', ['url' => $cloudinaryUrl]);
+                    } else {
+                        // If Cloudinary upload fails, create a fallback URL using UI Avatars
+                        $name = urlencode($request->name);
+                        $data['profile_photo'] = "https://ui-avatars.com/api/?name={$name}&color=7F9CF5&background=EBF4FF";
+                        \Log::warning('Profile photo upload failed, using UI Avatars fallback');
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('Exception during profile photo upload: ' . $e->getMessage(), [
+                        'file' => $e->getFile(),
+                        'line' => $e->getLine()
+                    ]);
+
+                    // Use UI Avatars as fallback
+                    $name = urlencode($request->name);
+                    $data['profile_photo'] = "https://ui-avatars.com/api/?name={$name}&color=7F9CF5&background=EBF4FF";
                 }
             }
 
@@ -201,15 +221,43 @@ class StudentController extends Controller
 
         // Handle profile photo upload
         if ($request->hasFile('profile_photo')) {
+            \Log::info('Profile photo update detected', [
+                'file_name' => $request->file('profile_photo')->getClientOriginalName(),
+                'file_size' => $request->file('profile_photo')->getSize(),
+                'file_mime' => $request->file('profile_photo')->getMimeType(),
+            ]);
+
             // Delete old image if exists
-            if ($student->profile_photo) {
-                $this->cloudinaryService->deleteImage($student->profile_photo);
+            if ($student->profile_photo && strpos($student->profile_photo, 'cloudinary') !== false) {
+                try {
+                    $this->cloudinaryService->deleteImage($student->profile_photo);
+                    \Log::info('Old profile photo deleted from Cloudinary');
+                } catch (\Exception $e) {
+                    \Log::warning('Failed to delete old profile photo: ' . $e->getMessage());
+                }
             }
 
             // Upload new image
-            $cloudinaryUrl = $this->cloudinaryService->uploadImage($request->file('profile_photo'), 'student-photos');
-            if ($cloudinaryUrl) {
-                $data['profile_photo'] = $cloudinaryUrl;
+            try {
+                $cloudinaryUrl = $this->cloudinaryService->uploadImage($request->file('profile_photo'), 'student-photos');
+                if ($cloudinaryUrl) {
+                    $data['profile_photo'] = $cloudinaryUrl;
+                    \Log::info('New profile photo uploaded', ['url' => $cloudinaryUrl]);
+                } else {
+                    // If Cloudinary upload fails, create a fallback URL using UI Avatars
+                    $name = urlencode($request->name);
+                    $data['profile_photo'] = "https://ui-avatars.com/api/?name={$name}&color=7F9CF5&background=EBF4FF";
+                    \Log::warning('Profile photo upload failed, using UI Avatars fallback');
+                }
+            } catch (\Exception $e) {
+                \Log::error('Exception during profile photo upload: ' . $e->getMessage(), [
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine()
+                ]);
+
+                // Use UI Avatars as fallback
+                $name = urlencode($request->name);
+                $data['profile_photo'] = "https://ui-avatars.com/api/?name={$name}&color=7F9CF5&background=EBF4FF";
             }
         }
 

@@ -14,7 +14,6 @@ class Submission extends Model
         'student_id',
         'activity_id',
         'file_path',
-        'submitted_at',
         'status',
         'grade',
         'feedback',
@@ -22,7 +21,6 @@ class Submission extends Model
     ];
 
     protected $casts = [
-        'submitted_at' => 'datetime',
         'graded_at' => 'datetime',
         'grade' => 'float',
     ];
@@ -42,4 +40,4 @@ class Submission extends Model
     {
         return $this->belongsTo(Activity::class);
     }
-} 
+}

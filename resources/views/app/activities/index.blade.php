@@ -40,7 +40,7 @@
                                 <option value="">All Types</option>
                                 <option value="assignment" {{ request('type') == 'assignment' ? 'selected' : '' }}>Assignment</option>
                                 <option value="material" {{ request('type') == 'material' ? 'selected' : '' }}>Material</option>
-                                <option value="question" {{ request('type') == 'question' ? 'selected' : '' }}>Question</option>
+                                <option value="announcement" {{ request('type') == 'announcement' ? 'selected' : '' }}>Announcement</option>
                             </select>
                         </div>
                         <div class="w-full md:w-auto">
@@ -87,7 +87,15 @@
                                             <span class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
                                                 {{ $activity->subject->name }}
                                             </span>
-                                            <span class="text-xs bg-{{ $activity->type === 'assignment' ? 'purple' : ($activity->type === 'material' ? 'green' : 'yellow') }}-100 text-{{ $activity->type === 'assignment' ? 'purple' : ($activity->type === 'material' ? 'green' : 'yellow') }}-800 px-2 py-0.5 rounded-full">
+                                            @php
+                                                $typeColors = [
+                                                    'assignment' => 'purple',
+                                                    'material' => 'green',
+                                                    'announcement' => 'amber'
+                                                ];
+                                                $typeColor = $typeColors[$activity->type] ?? 'gray';
+                                            @endphp
+                                            <span class="text-xs bg-{{ $typeColor }}-100 text-{{ $typeColor }}-800 px-2 py-0.5 rounded-full">
                                                 {{ ucfirst($activity->type) }}
                                             </span>
                                             @if($activity->due_date)

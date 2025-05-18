@@ -39,7 +39,15 @@
                                 <a href="{{ route('subjects.show', $activity->subject_id) }}" class="text-sm bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full hover:bg-blue-200 transition-colors">
                                     {{ $activity->subject->name }}
                                 </a>
-                                <span class="text-sm bg-{{ $activity->type === 'assignment' ? 'purple' : ($activity->type === 'material' ? 'green' : 'yellow') }}-100 text-{{ $activity->type === 'assignment' ? 'purple' : ($activity->type === 'material' ? 'green' : 'yellow') }}-800 px-2 py-0.5 rounded-full">
+                                @php
+                                    $typeColors = [
+                                        'assignment' => 'purple',
+                                        'material' => 'green',
+                                        'announcement' => 'amber'
+                                    ];
+                                    $typeColor = $typeColors[$activity->type] ?? 'gray';
+                                @endphp
+                                <span class="text-sm bg-{{ $typeColor }}-100 text-{{ $typeColor }}-800 px-2 py-0.5 rounded-full">
                                     {{ ucfirst($activity->type) }}
                                 </span>
                                 <span class="text-sm {{ $activity->is_published ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }} px-2 py-0.5 rounded-full">
@@ -97,8 +105,18 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500 dark:text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                                     </svg>
-                                    <a href="{{ Storage::url($activity->attachment) }}" target="_blank" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+                                    <span class="text-gray-700 dark:text-gray-300">
                                         {{ basename($activity->attachment) }}
+                                    </span>
+                                </div>
+                                <div class="mt-3 flex space-x-3">
+                                    <a href="{{ route('activities.file-viewer', ['path' => $activity->attachment]) }}" target="_blank" class="inline-flex items-center px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm shadow-sm">
+                                        <i class="fas fa-eye mr-1.5"></i>
+                                        View
+                                    </a>
+                                    <a href="{{ route('activities.download-attachment', ['path' => $activity->attachment]) }}" class="inline-flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm shadow-sm">
+                                        <i class="fas fa-download mr-1.5"></i>
+                                        Download
                                     </a>
                                 </div>
                             </div>
@@ -116,15 +134,14 @@
                             <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
                                 <h4 class="font-medium text-gray-900 dark:text-white mb-2">Activity Document</h4>
                                 <div class="flex items-center space-x-2">
-                                    <a href="{{ Storage::url($activity->activity_document_path) }}" target="_blank" class="inline-flex items-center px-3 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors text-sm shadow-sm">
+                                    <a href="{{ route('activities.file-viewer', ['path' => $activity->activity_document_path]) }}" target="_blank" class="inline-flex items-center px-3 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors text-sm shadow-sm">
                                         <i class="fas fa-eye mr-1.5"></i>
                                         View
                                     </a>
-                                    @if($activity->attachment)
-    <a href="{{ route('activities.download-attachment', ['path' => $activity->attachment]) }}" target="_blank">
-        Download Attachment
-    </a>
-@endif
+                                    <a href="{{ route('activities.download-attachment', ['path' => $activity->activity_document_path]) }}" class="inline-flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm shadow-sm">
+                                        <i class="fas fa-download mr-1.5"></i>
+                                        Download
+                                    </a>
                                 </div>
                             </div>
                         @endif
@@ -133,11 +150,11 @@
                             <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
                                 <h4 class="font-medium text-gray-900 dark:text-white mb-2">Reviewer Attachment</h4>
                                 <div class="flex items-center space-x-2">
-                                    <a href="{{ Storage::url($activity->reviewer_attachment_path) }}" target="_blank" class="inline-flex items-center px-3 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors text-sm shadow-sm">
+                                    <a href="{{ route('activities.file-viewer', ['path' => $activity->reviewer_attachment_path]) }}" target="_blank" class="inline-flex items-center px-3 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors text-sm shadow-sm">
                                         <i class="fas fa-eye mr-1.5"></i>
                                         View
                                     </a>
-                                    <a href="{{ Storage::url($activity->reviewer_attachment_path) }}" download class="inline-flex items-center px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors text-sm shadow-sm">
+                                    <a href="{{ route('activities.download-attachment', ['path' => $activity->reviewer_attachment_path]) }}" class="inline-flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm shadow-sm">
                                         <i class="fas fa-download mr-1.5"></i>
                                         Download
                                     </a>
@@ -158,19 +175,84 @@
                 </div>
             </div>
 
-            <!-- Submissions Section (for assignments and questions) -->
-            @if($activity->type !== 'material')
+            <!-- Submissions Section (for assignments only) -->
+            <!-- Quiz Section (for materials only) -->
+            @if($activity->type === 'material')
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg mb-6">
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Quiz</h3>
+                            @if(!$activity->hasQuiz())
+                                <a href="{{ route('teacher-quizzes.create', ['activity_id' => $activity->id]) }}" class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    Add Quiz
+                                </a>
+                            @endif
+                        </div>
+
+                        @if($activity->hasQuiz())
+                            <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h4 class="font-medium text-gray-900 dark:text-white">{{ $activity->quiz->title }}</h4>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ $activity->quiz->description }}</p>
+                                        <div class="mt-2 flex flex-wrap gap-2">
+                                            <span class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                                                {{ $activity->quiz->questions->count() }} questions
+                                            </span>
+                                            <span class="text-xs {{ $activity->quiz->is_published ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }} px-2 py-0.5 rounded-full">
+                                                {{ $activity->quiz->is_published ? 'Published' : 'Draft' }}
+                                            </span>
+                                            <span class="text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">
+                                                Passing score: {{ $activity->quiz->passing_score }}%
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="flex space-x-2">
+                                        <a href="{{ route('teacher-quizzes.show', $activity->quiz->id) }}" class="inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors text-sm">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            </svg>
+                                            Manage Quiz
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        @else
+                            <div class="text-center py-8">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-white">No Quiz Added</h3>
+                                <p class="mt-1 text-gray-500 dark:text-gray-400">Add a quiz to this material to test student knowledge.</p>
+                                <div class="mt-6">
+                                    <a href="{{ route('teacher-quizzes.create', ['activity_id' => $activity->id]) }}" class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                        </svg>
+                                        Add Quiz
+                                    </a>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            @endif
+
+            <!-- Submissions Section (for assignments only) -->
+            @if($activity->type === 'assignment')
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg">
                     <div class="p-6">
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Student Submissions</h3>
-                        
                         @php
-                            $submissions = \App\Models\ActivitySubmission::where('activity_id', $activity->id)->get();
                             $totalStudents = $activity->subject->students->count();
-                            $submittedCount = $submissions->count();
-                            $gradedCount = $submissions->where('status', 'graded')->count();
+                            $submittedCount = $activity->submissions->count();
+                            $gradedCount = $activity->submissions->where('status', 'graded')->count();
                         @endphp
-                        
+
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                             <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
                                 <h4 class="text-sm font-medium text-blue-800 dark:text-blue-300">Total Students</h4>
@@ -185,8 +267,8 @@
                                 <p class="text-2xl font-bold text-purple-600 dark:text-purple-400">{{ $gradedCount }} / {{ $submittedCount }}</p>
                             </div>
                         </div>
-                        
-                        @if($submissions->count() > 0)
+
+                        @if($activity->submissions->count() > 0)
                             <div class="overflow-x-auto">
                                 <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                                     <thead class="bg-gray-50 dark:bg-gray-700">
@@ -199,7 +281,7 @@
                                         </tr>
                                     </thead>
                                     <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                        @foreach($submissions as $submission)
+                                        @foreach($activity->submissions as $submission)
                                             <tr>
                                                 <td class="px-6 py-4 whitespace-nowrap">
                                                     <div class="flex items-center">
@@ -229,7 +311,7 @@
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                                     @if($submission->status === 'graded')
-                                                        {{ $submission->score }} / {{ $activity->points ?? 'N/A' }}
+                                                        {{ $submission->grade }} / 100
                                                     @else
                                                         Not graded
                                                     @endif
@@ -254,6 +336,8 @@
                     </div>
                 </div>
             @endif
+
+
         </div>
     </div>
 </x-tenant-app-layout>

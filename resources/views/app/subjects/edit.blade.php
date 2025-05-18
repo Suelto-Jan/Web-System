@@ -81,17 +81,19 @@
                         </div>
 
                         <div class="flex justify-between">
-                            <form method="POST" action="{{ route('subjects.destroy', $subject->id) }}" class="inline" onsubmit="return confirm('Are you sure you want to delete this subject? This action cannot be undone.')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 focus:bg-red-700 active:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                                    Delete Subject
-                                </button>
-                            </form>
                             <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
                                 Update Subject
                             </button>
                         </div>
+                    </form>
+
+                    <!-- Delete Subject Form (Separate form) -->
+                    <form method="POST" action="{{ route('subjects.destroy', $subject->id) }}" class="mt-4" onsubmit="return confirm('Are you sure you want to delete this subject? This action cannot be undone.')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 focus:bg-red-700 active:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                            Delete Subject
+                        </button>
                     </form>
                 </div>
             </div>

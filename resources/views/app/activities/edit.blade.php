@@ -50,8 +50,15 @@
                             <select name="type" id="type" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500" required>
                                 <option value="assignment" {{ old('type', $activity->type) == 'assignment' ? 'selected' : '' }}>Assignment</option>
                                 <option value="material" {{ old('type', $activity->type) == 'material' ? 'selected' : '' }}>Material</option>
-                                <option value="question" {{ old('type', $activity->type) == 'question' ? 'selected' : '' }}>Question</option>
+                                <option value="announcement" {{ old('type', $activity->type) == 'announcement' ? 'selected' : '' }}>Announcement</option>
                             </select>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                <span class="font-medium text-indigo-600 dark:text-indigo-400">Assignment:</span> Students can submit work for grading
+                                <br>
+                                <span class="font-medium text-green-600 dark:text-green-400">Material:</span> Learning resources with no submission required
+                                <br>
+                                <span class="font-medium text-amber-600 dark:text-amber-400">Announcement:</span> Important updates and notifications for students
+                            </p>
                             @error('type')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
@@ -119,13 +126,9 @@
                         </div>
 
                         <div class="flex justify-between">
-                            <form method="POST" action="{{ route('activities.destroy', $activity->id) }}" class="inline" onsubmit="return confirm('Are you sure you want to delete this activity? This action cannot be undone.')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 focus:bg-red-700 active:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                                    Delete Activity
-                                </button>
-                            </form>
+                            <button type="button" onclick="confirmDelete()" class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 focus:bg-red-700 active:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                Delete Activity
+                            </button>
                             <button type="submit" class="inline-flex items-center px-4 py-2 bg-purple-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-purple-700 focus:bg-purple-700 active:bg-purple-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition ease-in-out duration-150">
                                 Update Activity
                             </button>
@@ -136,33 +139,69 @@
         </div>
     </div>
 
+    <!-- Hidden form for delete action -->
+    <form id="deleteForm" method="POST" action="{{ route('activities.destroy', $activity->id) }}" style="display: none;">
+        @csrf
+        @method('DELETE')
+    </form>
+
     <script>
+        // Function to handle delete confirmation
+        function confirmDelete() {
+            if (confirm('Are you sure you want to delete this activity? This action cannot be undone.')) {
+                document.getElementById('deleteForm').submit();
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const typeSelect = document.getElementById('type');
             const pointsField = document.getElementById('pointsField');
             const dueDateField = document.getElementById('dueDateField');
+            const activityDocumentField = document.getElementById('activityDocumentField');
+            const reviewerAttachmentField = document.getElementById('reviewerAttachmentField');
 
             function updateFieldVisibility() {
                 const selectedType = typeSelect.value;
-                
-                // Show/hide points field based on type
-                if (selectedType === 'material') {
+
+                // Show/hide fields based on type
+                if (selectedType === 'material' || selectedType === 'announcement') {
+                    // For materials and announcements, hide points and due date
                     pointsField.style.display = 'none';
-                } else {
-                    pointsField.style.display = 'block';
-                }
-                
-                // Show/hide due date field based on type
-                if (selectedType === 'assignment') {
-                    dueDateField.style.display = 'block';
-                } else {
                     dueDateField.style.display = 'none';
+
+                    // Show document fields prominently for materials
+                    if (activityDocumentField && selectedType === 'material') {
+                        activityDocumentField.classList.add('border-green-300', 'bg-green-50', 'dark:bg-green-900/10');
+                        // Show material notes
+                        document.querySelectorAll('.material-note').forEach(note => {
+                            note.classList.remove('hidden');
+                        });
+                    }
+
+                    // For announcements, highlight differently
+                    if (activityDocumentField && selectedType === 'announcement') {
+                        activityDocumentField.classList.add('border-amber-300', 'bg-amber-50', 'dark:bg-amber-900/10');
+                    }
+                } else {
+                    // For assignments, show points and due date
+                    pointsField.style.display = 'block';
+                    dueDateField.style.display = 'block';
+
+                    // Reset document field styling
+                    if (activityDocumentField) {
+                        activityDocumentField.classList.remove('border-green-300', 'bg-green-50', 'dark:bg-green-900/10');
+                        activityDocumentField.classList.remove('border-amber-300', 'bg-amber-50', 'dark:bg-amber-900/10');
+                        // Hide material notes
+                        document.querySelectorAll('.material-note').forEach(note => {
+                            note.classList.add('hidden');
+                        });
+                    }
                 }
             }
 
             // Initial update
             updateFieldVisibility();
-            
+
             // Update on change
             typeSelect.addEventListener('change', updateFieldVisibility);
         });

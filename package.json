@@ -18,6 +18,7 @@
         "vite": "^6.2.4"
     },
     "dependencies": {
+        "@sendbird/chat": "^4.17.4",
         "pdfjs-dist": "^5.2.133"
     }
 }

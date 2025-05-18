@@ -5,8 +5,11 @@ namespace App\Http\Controllers\App;
 use App\Http\Controllers\Controller;
 use App\Models\Subject;
 use App\Models\Student;
+use App\Models\Submission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class SubjectController extends Controller
 {
@@ -82,7 +85,44 @@ class SubjectController extends Controller
 
         $students = $subject->students;
 
-        return view('app.subjects.show', compact('subject', 'students'));
+        // Get top performing students based on their grades
+        $topStudents = collect();
+
+        // Get all assignment-type activities for this subject
+        $assignmentActivities = $subject->activities()->where('type', 'assignment')->pluck('id');
+
+        if ($assignmentActivities->count() > 0) {
+            // Get all students with their average grades for this subject's assignments
+            $studentGrades = \App\Models\Submission::whereIn('activity_id', $assignmentActivities)
+                ->whereNotNull('grade')
+                ->select('student_id', \DB::raw('AVG(grade) as average_grade'), \DB::raw('COUNT(*) as submission_count'))
+                ->groupBy('student_id')
+                ->having('submission_count', '>', 0)
+                ->orderByDesc('average_grade')
+                ->limit(5)
+                ->get();
+
+            // Get the student details for these top performers
+            if ($studentGrades->count() > 0) {
+                $studentIds = $studentGrades->pluck('student_id');
+                $topStudentsData = \App\Models\Student::whereIn('id', $studentIds)->get();
+
+                // Merge the student data with their grades
+                foreach ($studentGrades as $grade) {
+                    $student = $topStudentsData->firstWhere('id', $grade->student_id);
+                    if ($student) {
+                        $student->average_grade = round($grade->average_grade, 1);
+                        $student->submission_count = $grade->submission_count;
+                        $topStudents->push($student);
+                    }
+                }
+
+                // Sort by average grade (highest first)
+                $topStudents = $topStudents->sortByDesc('average_grade')->values();
+            }
+        }
+
+        return view('app.subjects.show', compact('subject', 'students', 'topStudents'));
     }
 
     /**

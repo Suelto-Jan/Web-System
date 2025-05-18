@@ -36,7 +36,7 @@ class Student extends Authenticatable
      */
     public function submissions()
     {
-        return $this->hasMany(ActivitySubmission::class);
+        return $this->hasMany(Submission::class);
     }
 
     /**
@@ -58,5 +58,40 @@ class Student extends Authenticatable
             ->where('end_date', '>=', now())
             ->latest()
             ->first();
+    }
+
+    /**
+     * Get the quiz attempts for the student.
+     */
+    public function quizAttempts()
+    {
+        return $this->hasMany(QuizAttempt::class);
+    }
+
+    /**
+     * Check if the student has attempted a specific quiz.
+     */
+    public function hasAttemptedQuiz($quizId)
+    {
+        return $this->quizAttempts()->where('quiz_id', $quizId)->exists();
+    }
+
+    /**
+     * Get the latest attempt for a specific quiz.
+     */
+    public function getLatestQuizAttempt($quizId)
+    {
+        return $this->quizAttempts()
+            ->where('quiz_id', $quizId)
+            ->latest()
+            ->first();
+    }
+
+    /**
+     * Check if the student has premium access.
+     */
+    public function hasPremiumAccess()
+    {
+        return $this->plan === 'premium';
     }
 }

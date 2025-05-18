@@ -1,93 +1,119 @@
-<div x-data="{ open: true }" class="h-screen flex flex-col bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-sm">
-    <!-- Sidebar Header -->
-    <div class="p-4 flex items-center justify-between">
-        <a href="{{ route('dashboard') }}" class="flex items-center space-x-2">
-            <div class="h-8 w-8 rounded-full animated-gradient flex items-center justify-center">
-                <span class="text-white font-bold">{{ substr(tenant('name') ?? config('app.name'), 0, 1) }}</span>
+@php
+    use Illuminate\Support\Facades\Auth;
+@endphp
+<aside x-data="{ open: true, activeMenu: '{{ request()->route()->getName() }}' }" class="w-64 bg-white dark:bg-gray-800 shadow-md flex flex-col border-r border-gray-100 dark:border-gray-700 relative h-full">
+    <!-- Toggle Button -->
+    <button @click="open = !open" class="absolute -right-3 top-20 bg-white dark:bg-gray-800 rounded-full p-1.5 shadow-md border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 z-10 transition-transform duration-300" :class="{'rotate-180': !open}">
+        <i class="fas fa-chevron-left text-xs text-blue-500 dark:text-blue-400"></i>
+    </button>
+
+    <!-- Logo and Brand -->
+    <div class="flex items-center py-4 px-4 border-b border-gray-100 dark:border-gray-700">
+        <div class="flex items-center space-x-3">
+            <div class="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm">
+                <span class="text-lg font-bold text-white">{{ substr(tenant('name') ?? config('app.name'), 0, 1) }}</span>
             </div>
-            <span x-show="open" class="text-lg font-semibold text-gray-900 dark:text-white">{{ tenant('name') ?? config('app.name') }}</span>
-        </a>
-        <button @click="open = !open" class="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none">
-            <svg x-show="open" class="h-5 w-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-            </svg>
-            <svg x-show="!open" class="h-5 w-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-            </svg>
-        </button>
-    </div>
-
-    <!-- Sidebar Navigation -->
-    <div class="flex-1 overflow-y-auto py-4">
-        <nav class="px-2 space-y-1">
-            <!-- Dashboard -->
-            <a href="{{ route('dashboard') }}" class="group flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('dashboard') ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700' }}">
-                <i class="fas fa-home mr-3 flex-shrink-0 h-5 w-5 {{ request()->routeIs('dashboard') ? 'text-indigo-500 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300' }}"></i>
-                <span x-show="open">Dashboard</span>
-            </a>
-
-            <!-- Subjects -->
-            <a href="{{ route('subjects.index') }}" class="group flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('subjects.*') ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700' }}">
-                <i class="fas fa-book mr-3 flex-shrink-0 h-5 w-5 {{ request()->routeIs('subjects.*') ? 'text-indigo-500 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300' }}"></i>
-                <span x-show="open">Subjects</span>
-            </a>
-
-            <!-- Students -->
-            <a href="{{ route('students.index') }}" class="group flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('students.*') ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700' }}">
-                <i class="fas fa-user-graduate mr-3 flex-shrink-0 h-5 w-5 {{ request()->routeIs('students.*') ? 'text-indigo-500 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300' }}"></i>
-                <span x-show="open">Students</span>
-            </a>
-
-            <!-- Activities -->
-            <a href="{{ route('activities.index') }}" class="group flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('activities.*') ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700' }}">
-                <i class="fas fa-tasks mr-3 flex-shrink-0 h-5 w-5 {{ request()->routeIs('activities.*') ? 'text-indigo-500 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300' }}"></i>
-                <span x-show="open">Activities</span>
-            </a>
-
-            <!-- Submissions -->
-            <a href="{{ route('activities.index', ['view' => 'submissions']) }}" class="group flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('activities.*') && request()->query('view') == 'submissions' ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700' }}">
-                <i class="fas fa-clipboard-check mr-3 flex-shrink-0 h-5 w-5 {{ request()->routeIs('activities.*') && request()->query('view') == 'submissions' ? 'text-indigo-500 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300' }}"></i>
-                <span x-show="open">Submissions</span>
-            </a>
-
-            <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700"></div>
-
-            <!-- Settings -->
-            @if(Auth::guard('student')->check())
-                <a href="{{ route('student.settings.edit') }}" class="group flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('student.settings.edit') ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700' }}">
-                    <i class="fas fa-cog mr-3 flex-shrink-0 h-5 w-5 {{ request()->routeIs('student.settings.edit') ? 'text-indigo-500 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300' }}"></i>
-                    <span x-show="open">Settings</span>
-                </a>
-            @else
-                <a href="{{ route('tenant.settings.edit') }}" class="group flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('tenant.settings.edit') ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700' }}">
-                    <i class="fas fa-cog mr-3 flex-shrink-0 h-5 w-5 {{ request()->routeIs('tenant.settings.edit') ? 'text-indigo-500 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300' }}"></i>
-                    <span x-show="open">Settings</span>
-                </a>
-            @endif
-        </nav>
-    </div>
-
-    <!-- Sidebar Footer -->
-    <div class="p-4 border-t border-gray-200 dark:border-gray-700">
-        <div x-show="open" class="flex items-center">
-            <div class="flex-shrink-0">
-                <div class="h-8 w-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-300">
-                    {{ substr(Auth::user()->name, 0, 1) }}
+            <div x-show="open" class="transition-all duration-300 ease-in-out" x-transition>
+                <div class="text-gray-800 dark:text-white text-lg font-bold">{{ tenant('name') ?? config('app.name') }}</div>
+                <div class="text-gray-500 dark:text-gray-400 text-xs">Classroom</div>
+                <div class="text-xs text-blue-600 dark:text-blue-400 flex items-center mt-1">
+                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"></path>
+                    </svg>
+                    <span>Teacher Portal</span>
                 </div>
             </div>
-            <div class="ml-3">
-                <p class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ Auth::user()->name }}</p>
-                @if(Auth::guard('student')->check())
-                    <a href="{{ route('student.settings.edit') }}" class="text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-indigo-500 dark:hover:text-indigo-400">Settings</a>
-                @else
-                    <a href="{{ route('tenant.settings.edit') }}" class="text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-indigo-500 dark:hover:text-indigo-400">Settings</a>
-                @endif
-            </div>
-        </div>
-        <div x-show="!open" class="flex justify-center">
-            <div class="h-8 w-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-300">
-                {{ substr(Auth::user()->name, 0, 1) }}
-            </div>
         </div>
     </div>
-</div>
+
+
+
+    <!-- Navigation Menu -->
+    <nav class="flex-1 overflow-y-auto py-4 px-3">
+        <div class="space-y-1">
+            <a href="{{ route('dashboard') }}"
+               class="group flex items-center px-3 py-2 rounded-lg font-medium transition-all duration-200"
+               :class="activeMenu === 'dashboard' ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/30 hover:text-blue-600 dark:hover:text-blue-400'">
+                <div class="flex items-center justify-center w-8 h-8">
+                    <i class="fas fa-home" :class="activeMenu === 'dashboard' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400'"></i>
+                </div>
+                <span x-show="open" class="ml-3 transition-all duration-300 ease-in-out" x-transition>Dashboard</span>
+            </a>
+
+            <a href="{{ route('subjects.index') }}"
+               class="group flex items-center px-3 py-2 rounded-lg font-medium transition-all duration-200"
+               :class="activeMenu === 'subjects.index' || activeMenu.startsWith('subjects.') ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/30 hover:text-blue-600 dark:hover:text-blue-400'">
+                <div class="flex items-center justify-center w-8 h-8">
+                    <i class="fas fa-book" :class="activeMenu === 'subjects.index' || activeMenu.startsWith('subjects.') ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400'"></i>
+                </div>
+                <span x-show="open" class="ml-3 transition-all duration-300 ease-in-out" x-transition>Subjects</span>
+            </a>
+
+            <a href="{{ route('students.index') }}"
+               class="group flex items-center px-3 py-2 rounded-lg font-medium transition-all duration-200"
+               :class="activeMenu === 'students.index' || activeMenu.startsWith('students.') ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/30 hover:text-blue-600 dark:hover:text-blue-400'">
+                <div class="flex items-center justify-center w-8 h-8">
+                    <i class="fas fa-user-graduate" :class="activeMenu === 'students.index' || activeMenu.startsWith('students.') ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400'"></i>
+                </div>
+                <span x-show="open" class="ml-3 transition-all duration-300 ease-in-out" x-transition>Students</span>
+            </a>
+
+            <a href="{{ route('activities.index') }}"
+               class="group flex items-center px-3 py-2 rounded-lg font-medium transition-all duration-200"
+               :class="activeMenu === 'activities.index' || activeMenu.startsWith('activities.') ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/30 hover:text-blue-600 dark:hover:text-blue-400'">
+                <div class="flex items-center justify-center w-8 h-8">
+                    <i class="fas fa-tasks" :class="activeMenu === 'activities.index' || activeMenu.startsWith('activities.') ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400'"></i>
+                </div>
+                <span x-show="open" class="ml-3 transition-all duration-300 ease-in-out" x-transition>Activities</span>
+            </a>
+
+            <a href="{{ route('submissions.index') }}"
+               class="group flex items-center px-3 py-2 rounded-lg font-medium transition-all duration-200"
+               :class="activeMenu === 'submissions.index' || activeMenu.startsWith('submissions.') ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/30 hover:text-blue-600 dark:hover:text-blue-400'">
+                <div class="flex items-center justify-center w-8 h-8">
+                    <i class="fas fa-clipboard-check" :class="activeMenu === 'submissions.index' || activeMenu.startsWith('submissions.') ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400'"></i>
+                </div>
+                <span x-show="open" class="ml-3 transition-all duration-300 ease-in-out" x-transition>Submissions</span>
+            </a>
+
+            <a href="{{ route('teacher-quizzes.index') }}"
+               class="group flex items-center px-3 py-2 rounded-lg font-medium transition-all duration-200"
+               :class="activeMenu === 'teacher-quizzes.index' || activeMenu.startsWith('teacher-quizzes.') ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/30 hover:text-blue-600 dark:hover:text-blue-400'">
+                <div class="flex items-center justify-center w-8 h-8">
+                    <i class="fas fa-question-circle" :class="activeMenu === 'teacher-quizzes.index' || activeMenu.startsWith('teacher-quizzes.') ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400'"></i>
+                </div>
+                <span x-show="open" class="ml-3 transition-all duration-300 ease-in-out" x-transition>Quizzes</span>
+            </a>
+
+            <a href="{{ route('chat.index') }}"
+               class="group flex items-center px-3 py-2 rounded-lg font-medium transition-all duration-200"
+               :class="activeMenu === 'chat.index' || activeMenu === 'chat.show' || activeMenu === 'chat.create' ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/30 hover:text-blue-600 dark:hover:text-blue-400'">
+                <div class="flex items-center justify-center w-8 h-8">
+                    <i class="fas fa-comments" :class="activeMenu === 'chat.index' || activeMenu === 'chat.show' || activeMenu === 'chat.create' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400'"></i>
+                </div>
+                <span x-show="open" class="ml-3 transition-all duration-300 ease-in-out" x-transition>Chat</span>
+            </a>
+        </div>
+
+    
+    </nav>
+
+    <!-- Version Info and Logout -->
+    <div class="mt-auto px-4 py-4 border-t border-gray-100 dark:border-gray-700">
+        <div x-show="open" class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-3">
+            <div class="flex items-center">
+                <div class="w-2 h-2 rounded-full bg-green-400 mr-2"></div>
+                <span>Classroom v1.0</span>
+            </div>
+        </div>
+        <form method="POST" action="{{ route('logout') }}" class="w-full">
+            @csrf
+            <button type="submit" class="w-full flex items-center px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-colors">
+                <div class="flex items-center justify-center w-8 h-8">
+                    <i class="fas fa-sign-out-alt text-gray-500 dark:text-gray-400 group-hover:text-red-500"></i>
+                </div>
+                <span x-show="open" class="ml-3">Logout</span>
+            </button>
+        </form>
+    </div>
+</aside>

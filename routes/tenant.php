@@ -9,6 +9,8 @@ use App\Http\Controllers\App\StudentController;
 use App\Http\Controllers\App\ActivityController;
 use App\Http\Controllers\App\SubmissionController;
 use App\Http\Controllers\App\StudentSubscriptionController;
+use App\Http\Controllers\App\ChatController;
+use App\Http\Controllers\App\StudentChatController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 use Illuminate\Support\Facades\Auth;
@@ -106,19 +108,35 @@ Route::middleware([
         return view('app.dashboard');
     })->middleware(['auth', 'verified'])->name('dashboard');
 
-   
+
     Route::get('/student/dashboard', function () {
         $student = Auth::guard('student')->user();
-        $subjects = $student ? $student->subjects()->with('activities')->get() : [];
+        $subjects = $student ? $student->subjects()->with(['activities', 'user'])->get() : [];
         return view('app.student-dashboard', compact('subjects'));
     })->middleware(['auth:student'])->name('student.dashboard');
 
     // Student's My Subjects route
     Route::get('/my-subjects', function () {
         $student = Auth::guard('student')->user();
-        $subjects = $student ? $student->subjects()->with('activities')->get() : [];
+        $subjects = $student ? $student->subjects()->with(['activities', 'user'])->get() : [];
         return view('app.my-subjects', compact('subjects'));
     })->middleware(['auth:student'])->name('student.subjects');
+
+    // Student's Subject Details route
+    Route::get('/my-subjects/{subject}', function (\App\Models\Subject $subject) {
+        $student = Auth::guard('student')->user();
+
+        // Check if the student is enrolled in this subject
+        if (!$student->subjects()->where('subjects.id', $subject->id)->exists()) {
+            return redirect()->route('student.subjects')->with('error', 'You are not enrolled in this subject.');
+        }
+
+        // Load the subject with its teacher, activities, and classmates
+        $subject->load(['user', 'activities.quiz']);
+        $classmates = $subject->students()->where('students.id', '!=', $student->id)->get();
+
+        return view('app.my-subject-details', compact('subject', 'classmates', 'student'));
+    })->middleware(['auth:student'])->name('student.subject.show');
 
     // Student's Assignments route
     Route::get('/my-assignments', function () {
@@ -128,6 +146,8 @@ Route::middleware([
 
         $student = Auth::guard('student')->user();
         $submissions = $student->submissions()->with('activity')->get();
+
+        // Use the Submission model for the query
         $activeActivities = $student->subjects()
             ->with(['activities' => function($query) use ($student) {
                 $query->where('due_date', '>', now())
@@ -138,23 +158,91 @@ Route::middleware([
             ->get()
             ->pluck('activities')
             ->flatten();
-            
+
         return view('app.my-assignments', compact('submissions', 'activeActivities'));
     })->middleware(['auth:student'])->name('student.assignments');
 
+    // Student's Materials route
+    Route::get('/my-materials', function () {
+        if (!Auth::guard('student')->check()) {
+            return redirect()->route('student.login');
+        }
+
+        $student = Auth::guard('student')->user();
+        $materials = $student->subjects()
+            ->with(['activities' => function($query) {
+                $query->where('type', 'material')
+                      ->where('is_published', true)
+                      ->whereNotNull('attachment'); // Only get materials with attachments
+            }])
+            ->get()
+            ->pluck('activities')
+            ->flatten();
+
+        return view('app.my-materials', compact('materials', 'student'));
+    })->middleware(['auth:student'])->name('student.materials');
+
+    // Student's Announcements route
+    Route::get('/my-announcements', function () {
+        if (!Auth::guard('student')->check()) {
+            return redirect()->route('student.login');
+        }
+
+        $student = Auth::guard('student')->user();
+        $announcements = $student->subjects()
+            ->with(['activities' => function($query) {
+                $query->where('type', 'announcement')
+                      ->where('is_published', true)
+                      ->orderBy('created_at', 'desc');
+            }])
+            ->get()
+            ->pluck('activities')
+            ->flatten();
+
+        return view('app.my-announcements', compact('announcements'));
+    })->middleware(['auth:student'])->name('student.announcements');
+
+    // Quiz routes
+    Route::prefix('quizzes')->middleware(['auth:student'])->group(function () {
+        Route::get('/', [App\Http\Controllers\App\QuizController::class, 'index'])->name('quizzes.index');
+        Route::get('/{id}', [App\Http\Controllers\App\QuizController::class, 'show'])->name('quizzes.show');
+        Route::get('/{id}/start', [App\Http\Controllers\App\QuizController::class, 'start'])->name('quizzes.start');
+        Route::post('/attempt/{attemptId}/submit', [App\Http\Controllers\App\QuizController::class, 'submit'])->name('quizzes.submit');
+        Route::get('/results/{attemptId}', [App\Http\Controllers\App\QuizController::class, 'results'])->name('quizzes.results');
+    });
+
+    // Student Plan Management routes
+    Route::get('/plan', [App\Http\Controllers\App\StudentUpgradeController::class, 'showPlanManagement'])
+        ->middleware(['auth:student'])
+        ->name('student.plan');
+    Route::get('/upgrade', [App\Http\Controllers\App\StudentUpgradeController::class, 'showUpgradePage'])
+        ->middleware(['auth:student'])
+        ->name('student.upgrade');
+    Route::post('/upgrade', [App\Http\Controllers\App\StudentUpgradeController::class, 'processUpgrade'])
+        ->middleware(['auth:student'])
+        ->name('student.upgrade.process');
+    Route::post('/downgrade', [App\Http\Controllers\App\StudentUpgradeController::class, 'processDowngrade'])
+        ->middleware(['auth:student'])
+        ->name('student.downgrade');
+
     // Submission routes
-    Route::post('/submissions', [App\Http\Controllers\SubmissionController::class, 'store'])
+    Route::post('/submissions', [App\Http\Controllers\App\SubmissionController::class, 'store'])
         ->middleware(['auth:student'])
         ->name('submissions.store');
-    Route::get('/submissions/{submission}', [App\Http\Controllers\SubmissionController::class, 'show'])
+    Route::get('/submissions/{submission}', [App\Http\Controllers\App\SubmissionController::class, 'show'])
         ->middleware(['auth:student'])
         ->name('submissions.show');
+    Route::get('/submissions/{submission}/download', [App\Http\Controllers\App\SubmissionController::class, 'download'])
+        ->middleware(['auth:student'])
+        ->name('submissions.download');
+    Route::get('/submissions/{submission}/preview', [App\Http\Controllers\App\SubmissionController::class, 'preview'])
+        ->middleware(['auth:student'])
+        ->name('submissions.preview');
 
     // Student Profile routes
     Route::middleware('auth:student')->group(function () {
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-        Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     });
 
     // Student settings/profile
@@ -163,18 +251,26 @@ Route::middleware([
         Route::patch('/student/settings', [\App\Http\Controllers\App\ProfileController::class, 'update'])->name('student.settings.update');
     });
 
-    // Allow students to download attachments
+    // Allow students to download and view attachments
     Route::middleware(['auth:student'])->group(function () {
         Route::get('/download-attachment/{path}', [\App\Http\Controllers\App\ActivityController::class, 'downloadAttachment'])
             ->where('path', '.*')
             ->name('activities.download-attachment');
+
+        Route::get('/view-attachment/{path}', [\App\Http\Controllers\App\ActivityController::class, 'viewAttachment'])
+            ->where('path', '.*')
+            ->name('activities.view-attachment');
     });
 
-    // Allow tenants/teachers to download attachments
+    // Allow tenants/teachers to download and view attachments
     Route::middleware(['auth'])->group(function () {
         Route::get('/download-attachment/{path}', [\App\Http\Controllers\App\ActivityController::class, 'downloadAttachment'])
             ->where('path', '.*')
             ->name('activities.download-attachment.tenant');
+
+        Route::get('/view-attachment/{path}', [\App\Http\Controllers\App\ActivityController::class, 'viewAttachment'])
+            ->where('path', '.*')
+            ->name('activities.view-attachment.tenant');
     });
 
     // Classroom routes
@@ -192,30 +288,117 @@ Route::middleware([
         Route::resource('subscriptions', StudentSubscriptionController::class);
         Route::post('/subscriptions/{id}/activate', [StudentSubscriptionController::class, 'activate'])->name('subscriptions.activate');
         Route::post('/subscriptions/{id}/deactivate', [StudentSubscriptionController::class, 'deactivate'])->name('subscriptions.deactivate');
-        
+
 
         // Activities
         Route::resource('activities', ActivityController::class);
         Route::post('/activities/{activity}/publish', [ActivityController::class, 'publish'])->name('activities.publish');
         Route::post('/activities/{activity}/unpublish', [ActivityController::class, 'unpublish'])->name('activities.unpublish');
 
+        // Teacher Quiz Management
+        Route::resource('teacher-quizzes', App\Http\Controllers\App\TeacherQuizController::class)->parameters([
+            'teacher-quizzes' => 'quiz'
+        ]);
+        Route::post('/teacher-quizzes/{quiz}/toggle-published', [App\Http\Controllers\App\TeacherQuizController::class, 'togglePublished'])->name('teacher-quizzes.toggle-published');
+
+        // Quiz Questions Management
+        Route::get('/teacher-quizzes/{quiz}/questions/create', [App\Http\Controllers\App\TeacherQuizController::class, 'createMultipleQuestions'])->name('teacher-quizzes.questions.create');
+        Route::post('/teacher-quizzes/{quiz}/questions', [App\Http\Controllers\App\TeacherQuizController::class, 'storeMultipleQuestions'])->name('teacher-quizzes.questions.store');
+        Route::get('/teacher-quizzes/{quiz}/questions/{question}/edit', [App\Http\Controllers\App\TeacherQuizController::class, 'editQuestion'])->name('teacher-quizzes.questions.edit');
+        Route::put('/teacher-quizzes/{quiz}/questions/{question}', [App\Http\Controllers\App\TeacherQuizController::class, 'updateQuestion'])->name('teacher-quizzes.questions.update');
+        Route::delete('/teacher-quizzes/{quiz}/questions/{question}', [App\Http\Controllers\App\TeacherQuizController::class, 'destroyQuestion'])->name('teacher-quizzes.questions.destroy');
+
         // Submissions
-        Route::get('/submissions', [SubmissionController::class, 'index'])->name('submissions.index');
-        Route::get('/submissions/{submission}', [SubmissionController::class, 'show'])->name('submissions.show');
-        Route::post('/activities/{activity}/submit', [SubmissionController::class, 'store'])->name('submissions.store');
-        Route::post('/submissions/{submission}/grade', [SubmissionController::class, 'grade'])->name('submissions.grade');
+        Route::get('/submissions', [App\Http\Controllers\App\SubmissionController::class, 'index'])->name('submissions.index');
+        Route::get('/submissions/{submission}', [App\Http\Controllers\App\SubmissionController::class, 'show'])->name('submissions.show');
+        Route::post('/activities/{activity}/submit', [App\Http\Controllers\App\SubmissionController::class, 'store'])->name('activities.submit');
+        Route::post('/submissions/{submission}/grade', [App\Http\Controllers\App\SubmissionController::class, 'grade'])->name('submissions.grade');
+        Route::get('/submissions/{submission}/download', [App\Http\Controllers\App\SubmissionController::class, 'download'])->name('submissions.download');
+        Route::get('/submissions/{submission}/preview', [App\Http\Controllers\App\SubmissionController::class, 'preview'])->name('submissions.preview');
     });
 
     // Tenant/teacher settings/profile
     Route::middleware(['auth'])->group(function () {
         Route::get('/settings', [\App\Http\Controllers\App\ProfileController::class, 'edit'])->name('tenant.settings.edit');
         Route::patch('/settings', [\App\Http\Controllers\App\ProfileController::class, 'update'])->name('tenant.profile.update');
+
+        // Chat routes for teachers
+        Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
+        Route::get('/chat/create', [ChatController::class, 'create'])->name('chat.create');
+        Route::post('/chat', [ChatController::class, 'store'])->name('chat.store');
+        Route::get('/chat/{channelUrl}', [ChatController::class, 'show'])->name('chat.show');
+        Route::post('/chat/{channelUrl}/send', [ChatController::class, 'sendMessage'])->name('chat.send');
+
+        // Catch-all route for Sendbird URLs - redirect to our custom chat view
+        Route::get('/chat/sendbird_group_channel_{channelUrl}', function($channelUrl) {
+            // Log the redirect
+            \Illuminate\Support\Facades\Log::info('Redirecting from Sendbird URL', [
+                'from' => request()->url(),
+                'to' => route('chat.show', $channelUrl)
+            ]);
+
+            // Redirect to our custom chat view
+            return redirect()->route('chat.show', $channelUrl);
+        })->where('channelUrl', '.*'); // Match any characters in the channel URL
+
+        // Subject-specific chat routes for teachers
+        Route::get('/subjects/{subject}/chat/create', [ChatController::class, 'createSubjectChat'])->name('subjects.chat.create');
+        Route::post('/subjects/{subject}/chat', [ChatController::class, 'storeSubjectChat'])->name('subjects.chat.store');
     });
 
-    // DEBUG: Register the download-attachment route globally to ensure it is always available
+    // Chat routes for students
+    Route::middleware(['auth:student'])->group(function () {
+        Route::get('/student/chat', [StudentChatController::class, 'index'])->name('student.chat.index');
+        Route::get('/student/chat/create', [StudentChatController::class, 'create'])->name('student.chat.create');
+        Route::post('/student/chat', [StudentChatController::class, 'store'])->name('student.chat.store');
+        Route::get('/student/chat/{channelUrl}', [StudentChatController::class, 'show'])->name('student.chat.show');
+        Route::post('/student/chat/{channelUrl}/send', [StudentChatController::class, 'sendMessage'])->name('student.chat.send');
+
+        // Subject-specific chat routes for students
+        Route::get('/student/subjects/{subject}/chat/create', [StudentChatController::class, 'createSubjectChat'])->name('student.subjects.chat.create');
+        Route::post('/student/subjects/{subject}/chat', [StudentChatController::class, 'storeSubjectChat'])->name('student.subjects.chat.store');
+
+        // Catch-all route for Sendbird URLs - redirect to our custom student chat view
+        Route::get('/student/chat/sendbird_group_channel_{channelUrl}', function($channelUrl) {
+            // Log the redirect
+            \Illuminate\Support\Facades\Log::info('Redirecting from Sendbird URL (student)', [
+                'from' => request()->url(),
+                'to' => route('student.chat.show', $channelUrl)
+            ]);
+
+            // Redirect to our custom student chat view
+            return redirect()->route('student.chat.show', $channelUrl);
+        })->where('channelUrl', '.*'); // Match any characters in the channel URL
+    });
+
+    // DEBUG: Register the file handling routes globally to ensure they are always available
     Route::get('/download-attachment/{path}', [\App\Http\Controllers\App\ActivityController::class, 'downloadAttachment'])
         ->where('path', '.*')
         ->name('activities.download-attachment');
+
+    Route::get('/view-attachment/{path}', [\App\Http\Controllers\App\ActivityController::class, 'viewAttachment'])
+        ->where('path', '.*')
+        ->name('activities.view-attachment');
+
+    Route::get('/file-viewer/{path}', [\App\Http\Controllers\App\ActivityController::class, 'fileViewer'])
+        ->where('path', '.*')
+        ->name('activities.file-viewer');
+
+    Route::get('/raw-file/{path}', [\App\Http\Controllers\App\ActivityController::class, 'rawFile'])
+        ->where('path', '.*')
+        ->name('activities.raw-file');
+
+    // Teacher routes
+    Route::middleware('auth')->group(function () {
+        // Quiz Questions
+        Route::get('/quizzes/{quiz}/questions', [App\Http\Controllers\App\QuestionController::class, 'index'])->name('teacher.quizzes.questions.index');
+        Route::get('/quizzes/{quiz}/questions/create', [App\Http\Controllers\App\QuestionController::class, 'create'])->name('teacher.quizzes.questions.create');
+        Route::post('/quizzes/{quiz}/questions', [App\Http\Controllers\App\QuestionController::class, 'store'])->name('teacher.quizzes.questions.store');
+        Route::get('/quizzes/{quiz}/questions/{question}', [App\Http\Controllers\App\QuestionController::class, 'show'])->name('teacher.quizzes.questions.show');
+        Route::get('/quizzes/{quiz}/questions/{question}/edit', [App\Http\Controllers\App\QuestionController::class, 'edit'])->name('teacher.quizzes.questions.edit');
+        Route::put('/quizzes/{quiz}/questions/{question}', [App\Http\Controllers\App\QuestionController::class, 'update'])->name('teacher.quizzes.questions.update');
+        Route::delete('/quizzes/{quiz}/questions/{question}', [App\Http\Controllers\App\QuestionController::class, 'destroy'])->name('teacher.quizzes.questions.destroy');
+    });
 
     require __DIR__.'/tenant-auth.php';
 });

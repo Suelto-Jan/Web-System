@@ -9,6 +9,12 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg">
                 <div class="p-6">
+                    @if(isset($error))
+                        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
+                            <p>{{ $error }}</p>
+                        </div>
+                    @endif
+
                     @if($submissions->count() > 0)
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -47,8 +53,8 @@
                                                 <div class="text-sm text-gray-500 dark:text-gray-400">{{ $submission->activity->subject->name }}</div>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
-                                                <div class="text-sm text-gray-900 dark:text-white">{{ $submission->submitted_at->format('M d, Y') }}</div>
-                                                <div class="text-sm text-gray-500 dark:text-gray-400">{{ $submission->submitted_at->format('g:i A') }}</div>
+                                                <div class="text-sm text-gray-900 dark:text-white">{{ $submission->created_at->format('M d, Y') }}</div>
+                                                <div class="text-sm text-gray-500 dark:text-gray-400">{{ $submission->created_at->format('g:i A') }}</div>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $submission->status === 'graded' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
@@ -86,4 +92,4 @@
             </div>
         </div>
     </div>
-</x-tenant-app-layout> 
+</x-tenant-app-layout>

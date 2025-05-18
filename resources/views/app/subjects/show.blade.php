@@ -25,7 +25,7 @@
     </x-slot>
 
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8" x-data="{ activeTab: 'activities' }">
             @if(session('success'))
                 <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded" role="alert">
                     <p>{{ session('success') }}</p>
@@ -58,6 +58,9 @@
                             </span>
                         </div>
                         <div class="flex space-x-2">
+                            <a href="{{ route('subjects.chat.create', $subject->id) }}" class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm">
+                                <i class="fas fa-comments mr-1"></i> Chat with Students
+                            </a>
                             <a href="{{ route('activities.create', ['subject_id' => $subject->id]) }}" class="inline-flex items-center px-3 py-1.5 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-sm">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -72,6 +75,84 @@
                             </button>
                         </div>
                     </div>
+
+                    <!-- Top Performing Students Section -->
+                    @if(isset($topStudents) && $topStudents->count() > 0)
+                        <div class="mt-6 mb-6" x-data="{ showTopStudents: false }">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                                    <span class="flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                                        </svg>
+                                        Top Performing Students
+                                    </span>
+                                </h3>
+                                <button
+                                    @click="showTopStudents = !showTopStudents"
+                                    class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+                                >
+                                    <span x-text="showTopStudents ? 'Hide Top Students' : 'Show Top Students'"></span>
+                                    <svg x-show="!showTopStudents" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                    <svg x-show="showTopStudents" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div x-show="showTopStudents" x-transition class="bg-white dark:bg-gray-700 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600 overflow-hidden">
+                                <ul class="divide-y divide-gray-200 dark:divide-gray-600">
+                                    @foreach($topStudents as $index => $student)
+                                        <li class="p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                                            <div class="flex items-center">
+                                                <div class="flex-shrink-0 mr-3">
+                                                    @if($index === 0)
+                                                        <div class="h-8 w-8 rounded-full bg-yellow-500 flex items-center justify-center text-white font-bold">
+                                                            1
+                                                        </div>
+                                                    @elseif($index === 1)
+                                                        <div class="h-8 w-8 rounded-full bg-gray-400 flex items-center justify-center text-white font-bold">
+                                                            2
+                                                        </div>
+                                                    @elseif($index === 2)
+                                                        <div class="h-8 w-8 rounded-full bg-amber-700 flex items-center justify-center text-white font-bold">
+                                                            3
+                                                        </div>
+                                                    @else
+                                                        <div class="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-500 flex items-center justify-center text-gray-700 dark:text-gray-200 font-bold">
+                                                            {{ $index + 1 }}
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                                <div class="flex items-center">
+                                                    <div class="flex-shrink-0 mr-3">
+                                                        @if($student->profile_photo)
+                                                            <img src="{{ Storage::url($student->profile_photo) }}" alt="{{ $student->name }}" class="h-10 w-10 rounded-full object-cover">
+                                                        @else
+                                                            <div class="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-gray-700 dark:text-gray-300 font-semibold text-lg">
+                                                                {{ substr($student->name, 0, 1) }}
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                    <div>
+                                                        <h4 class="font-medium text-gray-900 dark:text-white">{{ $student->name }}</h4>
+                                                        <p class="text-sm text-gray-600 dark:text-gray-300">{{ $student->email }}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-lg font-bold text-gray-900 dark:text-white">{{ $student->average_grade }}/100</div>
+                                                <div class="text-xs text-gray-500 dark:text-gray-400">{{ $student->submission_count }} submission(s)</div>
+                                            </div>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        </div>
+                    @endif
+
                     @if($subject->description)
                         <div class="mt-4">
                             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Description</h3>
@@ -84,7 +165,7 @@
             <!-- Tabs -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg">
                 <div class="border-b border-gray-200 dark:border-gray-700">
-                    <nav class="-mb-px flex" x-data="{ activeTab: 'activities' }">
+                    <nav class="-mb-px flex">
                         <button @click="activeTab = 'activities'" :class="{ 'border-blue-500 text-blue-600 dark:text-blue-400': activeTab === 'activities', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300': activeTab !== 'activities' }" class="w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm">
                             Activities
                         </button>
@@ -98,12 +179,6 @@
                 <div x-show="activeTab === 'activities'" class="p-6">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Activities</h3>
-                        <a href="{{ route('activities.create', ['subject_id' => $subject->id]) }}" class="inline-flex items-center px-3 py-1.5 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                            </svg>
-                            Add Activity
-                        </a>
                     </div>
 
                     @if($subject->activities->count() > 0)
@@ -125,7 +200,7 @@
                                             </div>
                                             <p class="text-sm text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">{{ $activity->description }}</p>
                                             <div class="mt-2 flex items-center">
-                                                <span class="text-xs bg-{{ $activity->type === 'assignment' ? 'blue' : ($activity->type === 'material' ? 'green' : 'purple') }}-100 text-{{ $activity->type === 'assignment' ? 'blue' : ($activity->type === 'material' ? 'green' : 'purple') }}-800 px-2 py-0.5 rounded-full">
+                                                <span class="text-xs bg-{{ $activity->type === 'assignment' ? 'blue' : 'green' }}-100 text-{{ $activity->type === 'assignment' ? 'blue' : 'green' }}-800 px-2 py-0.5 rounded-full">
                                                     {{ ucfirst($activity->type) }}
                                                 </span>
                                                 @if($activity->due_date)
@@ -164,15 +239,9 @@
                 </div>
 
                 <!-- Students Tab -->
-                <div x-show="activeTab === 'students'" class="p-6" style="display: none;">
+                <div x-show="activeTab === 'students'" class="p-6">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Enrolled Students</h3>
-                        <button type="button" onclick="document.getElementById('addStudentsModal').classList.remove('hidden')" class="inline-flex items-center px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                            </svg>
-                            Add Students
-                        </button>
                     </div>
 
                     @if($subject->students->count() > 0)

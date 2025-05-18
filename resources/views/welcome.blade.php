@@ -150,7 +150,7 @@
                 <a href="#pricing" class="text-[#1b1b18] dark:text-[#EDEDEC] hover:text-[#4473be] dark:hover:text-[#7da3e0] transition">Pricing</a>
                 <a href="#faq" class="text-[#1b1b18] dark:text-[#EDEDEC] hover:text-[#4473be] dark:hover:text-[#7da3e0] transition">FAQ</a>
 
-                @if (Route::has('login'))
+                @routeCheck('login')
                     @auth
                         <a href="{{ url('/dashboard') }}" class="px-5 py-2 bg-[#4473be] text-white rounded-full hover:bg-[#3a5fa0] transition">
                             Dashboard
@@ -160,7 +160,7 @@
                             Log in
                         </a>
                     @endauth
-                @endif
+                @endrouteCheck
             </nav>
 
             <!-- Mobile menu button -->
@@ -182,7 +182,7 @@
                 <a href="#pricing" @click="mobileMenuOpen = false" class="text-[#1b1b18] dark:text-[#EDEDEC] hover:text-[#4473be] dark:hover:text-[#7da3e0] py-2 transition">Pricing</a>
                 <a href="#faq" @click="mobileMenuOpen = false" class="text-[#1b1b18] dark:text-[#EDEDEC] hover:text-[#4473be] dark:hover:text-[#7da3e0] py-2 transition">FAQ</a>
 
-                @if (Route::has('login'))
+                @routeCheck('login')
                     @auth
                         <a href="{{ url('/dashboard') }}" @click="mobileMenuOpen = false" class="px-5 py-2 bg-[#4473be] text-white rounded-full hover:bg-[#3a5fa0] text-center transition">
                             Dashboard
@@ -192,7 +192,7 @@
                             Log in
                         </a>
                     @endauth
-                @endif
+                @endrouteCheck
             </nav>
         </div>
     </header>
@@ -374,9 +374,6 @@
             </div>
         </div>
     </section>
-
-
-
 
     <!-- Pricing Cards -->
     <section id="pricing" class="w-full max-w-7xl px-6 lg:px-8 mb-24 z-10">

@@ -16,6 +16,8 @@ class Activity extends Model
         'description',
         'due_date',
         'subject_id',
+        'type',
+        'points',
         'is_published',
         'activity_document_path',  // For teacher's activity document
         'reviewer_attachment_path', // For reviewer's PDF attachment
@@ -42,5 +44,29 @@ class Activity extends Model
     public function submissions(): HasMany
     {
         return $this->hasMany(Submission::class);
+    }
+
+    /**
+     * Get the quiz for the activity.
+     */
+    public function quiz()
+    {
+        return $this->hasOne(Quiz::class);
+    }
+
+    /**
+     * Check if the activity has a quiz.
+     */
+    public function hasQuiz()
+    {
+        try {
+            return $this->quiz()->exists();
+        } catch (\Exception $e) {
+            \Log::error('Error checking if activity has quiz', [
+                'activity_id' => $this->id,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
     }
 }

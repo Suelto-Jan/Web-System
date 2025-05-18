@@ -6,7 +6,6 @@ use App\Http\Controllers\App\TenantController;
 use App\Http\Controllers\App\SubjectController;
 use App\Http\Controllers\App\StudentController;
 use App\Http\Controllers\App\ActivityController;
-use App\Http\Controllers\App\SubmissionController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -57,11 +56,6 @@ Route::middleware(['tenant', 'auth'])->prefix('app')->group(function () {
 
     // Activities
     Route::resource('activities', ActivityController::class);
-
-    // Submissions
-    Route::resource('submissions', SubmissionController::class);
-    Route::post('/activities/{activity}/submit', [SubmissionController::class, 'submit'])->name('activities.submit');
-    Route::post('/submissions/{submission}/grade', [SubmissionController::class, 'grade'])->name('submissions.grade');
 });
 
 Route::get('/student/dashboard', function () {
@@ -69,20 +63,5 @@ Route::get('/student/dashboard', function () {
     $subjects = $student ? $student->subjects()->with('user')->get() : [];
     return view('app.student-dashboard', compact('subjects'));
 })->middleware('auth:student')->name('student.dashboard');
-
-// Submission routes
-Route::middleware(['auth:teacher'])->group(function () {
-    Route::get('/submissions', [SubmissionController::class, 'index'])->name('submissions.index');
-    Route::get('/submissions/{submission}', [SubmissionController::class, 'show'])->name('submissions.show');
-    Route::post('/submissions/{submission}/grade', [SubmissionController::class, 'grade'])->name('submissions.grade');
-    Route::get('/submissions/{submission}/download', [SubmissionController::class, 'download'])->name('submissions.download');
-    Route::get('/submissions/{submission}/preview', [SubmissionController::class, 'preview'])->name('submissions.preview');
-});
-
-// Student submission routes
-Route::middleware(['auth:student'])->group(function () {
-    Route::post('/activities/{activity}/submit', [SubmissionController::class, 'store'])->name('submissions.store');
-    Route::get('/submissions/{submission}/preview', [SubmissionController::class, 'preview'])->name('submissions.preview');
-});
 
 require __DIR__.'/auth.php';

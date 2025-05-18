@@ -4,24 +4,61 @@ namespace App\Policies;
 
 use App\Models\Submission;
 use App\Models\Student;
-use Illuminate\Auth\Access\HandlesAuthorization;
+use App\Models\User;
+use Illuminate\Auth\Access\Response;
 
 class SubmissionPolicy
 {
-    use HandlesAuthorization;
 
-    public function view(Student $student, Submission $submission)
+    /**
+     * Allow teachers to view all submissions
+     */
+    public function before($user, $ability)
     {
-        return $student->id === $submission->student_id;
+        // Teachers (regular users) can do anything with submissions
+        if ($user instanceof User) {
+            return Response::allow();
+        }
+
+        return null;
     }
 
-    public function update(Student $student, Submission $submission)
+    public function view($user, Submission $submission)
     {
-        return $student->id === $submission->student_id;
+        // If it's a student, check if they own the submission
+        if ($user instanceof Student) {
+            return $user->id === $submission->student_id
+                ? Response::allow()
+                : Response::deny('You do not own this submission.');
+        }
+
+        // For regular users (teachers), allow access
+        return Response::allow();
     }
 
-    public function delete(Student $student, Submission $submission)
+    public function update($user, Submission $submission)
     {
-        return $student->id === $submission->student_id;
+        // If it's a student, check if they own the submission
+        if ($user instanceof Student) {
+            return $user->id === $submission->student_id
+                ? Response::allow()
+                : Response::deny('You do not own this submission.');
+        }
+
+        // For regular users (teachers), allow access
+        return Response::allow();
     }
-} 
+
+    public function delete($user, Submission $submission)
+    {
+        // If it's a student, check if they own the submission
+        if ($user instanceof Student) {
+            return $user->id === $submission->student_id
+                ? Response::allow()
+                : Response::deny('You do not own this submission.');
+        }
+
+        // For regular users (teachers), allow access
+        return Response::allow();
+    }
+}

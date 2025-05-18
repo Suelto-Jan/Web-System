@@ -3,7 +3,10 @@
 namespace App\Providers;
 
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Log;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -12,7 +15,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Register global facades
+        $this->app->singleton('facades', function ($app) {
+            return new \App\Helpers\Facades();
+        });
     }
 
     /**
@@ -22,6 +28,18 @@ class AppServiceProvider extends ServiceProvider
     {
         // Configure pagination to use Tailwind CSS
         Paginator::useTailwind();
+
+        // Make Route facade available in all Blade templates
+        Blade::directive('routeCheck', function ($expression) {
+            return "<?php if (\\Illuminate\\Support\\Facades\\Route::has($expression)): ?>";
+        });
+
+        Blade::directive('endrouteCheck', function () {
+            return "<?php endif; ?>";
+        });
+
+        // Share the Route facade with all views
+        view()->share('Route', app('router'));
 
         // Configure URL generation to use the current domain
         // This ensures that route() helper generates URLs for the current domain

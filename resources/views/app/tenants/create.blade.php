@@ -1,50 +1,61 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                {{ __('Create New Tenant') }}
-            </h2>
-            <a href="{{ route('tenants.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                </svg>
+            <div class="flex items-center">
+                <div class="p-2 rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 mr-3">
+                    <i class="fas fa-plus-circle text-lg"></i>
+                </div>
+                <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+                    {{ __('Create New Tenant') }}
+                </h2>
+            </div>
+            <a href="{{ route('tenants.index') }}" class="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-gray-500 to-slate-500 text-white rounded-xl hover:from-gray-600 hover:to-slate-600 shadow-sm hover:shadow transition-all duration-200">
+                <i class="fas fa-arrow-left mr-2"></i>
                 Back to Tenants
             </a>
         </div>
     </x-slot>
 
-    <div class="py-12">
+    <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-xl border border-gray-100 dark:border-gray-700">
                 <div class="p-6">
                     <form method="POST" action="{{ route('tenants.store') }}" class="space-y-6">
                         @csrf
 
+                        <div class="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-lg border border-indigo-100 dark:border-indigo-800/30 mb-6">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-info-circle text-indigo-500 mt-0.5"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-indigo-800 dark:text-indigo-300">Tenant Information</h3>
+                                    <p class="text-sm text-indigo-700 dark:text-indigo-400 mt-1">Create a new tenant with their own database and domain. The tenant will be able to manage their own students and courses.</p>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <!-- Name -->
                             <div>
-                                <x-input-label for="name" :value="__('Name')" />
+                                <x-input-label for="name" :value="__('Company Name')" class="text-gray-700 dark:text-gray-300" />
                                 <div class="mt-1 relative rounded-md shadow-sm">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                                        </svg>
+                                        <i class="fas fa-building text-gray-400"></i>
                                     </div>
-                                    <x-text-input id="name" class="block mt-1 w-full pl-10" type="text" name="name" :value="old('name')" required autofocus />
+                                    <x-text-input id="name" class="block mt-1 w-full pl-10 rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 focus:border-indigo-500 focus:ring-indigo-500" type="text" name="name" :value="old('name')" required autofocus placeholder="Enter company name" />
                                 </div>
                                 <x-input-error :messages="$errors->get('name')" class="mt-2" />
                             </div>
 
                             <!-- Email -->
                             <div>
-                                <x-input-label for="email" :value="__('Email')" />
+                                <x-input-label for="email" :value="__('Email Address')" class="text-gray-700 dark:text-gray-300" />
                                 <div class="mt-1 relative rounded-md shadow-sm">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                                        </svg>
+                                        <i class="fas fa-envelope text-gray-400"></i>
                                     </div>
-                                    <x-text-input id="email" class="block mt-1 w-full pl-10" type="email" name="email" :value="old('email')" required />
+                                    <x-text-input id="email" class="block mt-1 w-full pl-10 rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 focus:border-indigo-500 focus:ring-indigo-500" type="email" name="email" :value="old('email')" required placeholder="Enter email address" />
                                 </div>
                                 <x-input-error :messages="$errors->get('email')" class="mt-2" />
                             </div>
@@ -114,4 +125,4 @@
             </div>
         </div>
     </div>
-</x-app-layout> 
+</x-app-layout>

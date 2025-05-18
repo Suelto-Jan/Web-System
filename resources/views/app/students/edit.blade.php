@@ -141,17 +141,19 @@
                         </div>
 
                         <div class="flex justify-between">
-                            <form method="POST" action="{{ route('students.destroy', $student->id) }}" class="inline" onsubmit="return confirm('Are you sure you want to delete this student? This action cannot be undone.')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 focus:bg-red-700 active:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                                    Delete Student
-                                </button>
-                            </form>
                             <button type="submit" class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:bg-green-700 active:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150">
                                 Update Student
                             </button>
                         </div>
+                    </form>
+
+                    <!-- Delete Student Form (Separate form) -->
+                    <form method="POST" action="{{ route('students.destroy', $student->id) }}" class="mt-4" onsubmit="return confirm('Are you sure you want to delete this student? This action cannot be undone.')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 focus:bg-red-700 active:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                            Delete Student
+                        </button>
                     </form>
                 </div>
             </div>
