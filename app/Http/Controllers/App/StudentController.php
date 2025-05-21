@@ -7,6 +7,7 @@ use App\Models\Student;
 use App\Models\Subject;
 use App\Notifications\StudentCredentials;
 use App\Services\CloudinaryService;
+use App\Services\SubscriptionLimitService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -25,14 +26,23 @@ class StudentController extends Controller
     protected $cloudinaryService;
 
     /**
+     * The Subscription Limit service instance.
+     *
+     * @var SubscriptionLimitService
+     */
+    protected $subscriptionLimitService;
+
+    /**
      * Create a new controller instance.
      *
      * @param CloudinaryService $cloudinaryService
+     * @param SubscriptionLimitService $subscriptionLimitService
      * @return void
      */
-    public function __construct(CloudinaryService $cloudinaryService)
+    public function __construct(CloudinaryService $cloudinaryService, SubscriptionLimitService $subscriptionLimitService)
     {
         $this->cloudinaryService = $cloudinaryService;
+        $this->subscriptionLimitService = $subscriptionLimitService;
     }
     /**
      * Display a listing of the resource.
@@ -61,7 +71,12 @@ class StudentController extends Controller
         // Paginate the results
         $students = $query->paginate(10)->withQueryString();
 
-        return view('app.students.index', compact('students'));
+        // Get subscription plan limits
+        $maxStudents = $this->subscriptionLimitService->getMaxStudents();
+        $remainingStudents = $this->subscriptionLimitService->getRemainingStudents();
+        $currentPlan = $this->subscriptionLimitService->getCurrentSubscriptionPlan();
+
+        return view('app.students.index', compact('students', 'maxStudents', 'remainingStudents', 'currentPlan'));
     }
 
     /**
@@ -69,6 +84,12 @@ class StudentController extends Controller
      */
     public function create()
     {
+        // Check if the user can create more students based on their subscription plan
+        if (!$this->subscriptionLimitService->canCreateStudent()) {
+            return redirect()->route('students.index')
+                ->with('error', 'You have reached the maximum number of students allowed for your subscription plan. Please upgrade to add more students.');
+        }
+
         $subjects = Subject::where('user_id', Auth::id())->orderBy('name')->get();
         return view('app.students.create', compact('subjects'));
     }
@@ -78,6 +99,12 @@ class StudentController extends Controller
      */
     public function store(Request $request)
     {
+        // Check if the user can create more students based on their subscription plan
+        if (!$this->subscriptionLimitService->canCreateStudent()) {
+            return redirect()->route('students.index')
+                ->with('error', 'You have reached the maximum number of students allowed for your subscription plan. Please upgrade to add more students.');
+        }
+
         \Log::info('StudentController@store called', [
             'request_data' => $request->all(),
             'tenant_id' => tenant() ? tenant()->id : 'none',

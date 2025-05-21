@@ -129,11 +129,7 @@
     </head>
     <body class="font-sans text-gray-900 dark:text-gray-100 antialiased">
         <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-auth-pattern relative">
-            <!-- Dark mode toggle -->
-            <button @click="darkMode = !darkMode" class="absolute top-4 right-4 p-2 rounded-full bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 shadow-md hover:shadow-lg transition-all duration-200">
-                <i class="fas" :class="darkMode ? 'fa-sun text-yellow-400' : 'fa-moon text-gray-700'"></i>
-            </button>
-
+           
             <div class="z-10">
                 <a href="/" class="flex items-center justify-center">
                     <div class="h-14 w-14 rounded-full bg-gradient-to-r from-[#4473be] to-[#7da3e0] flex items-center justify-center text-white font-bold text-2xl shadow-lg">

@@ -40,12 +40,32 @@ class SeedTenantJob implements ShouldQueue
                 'password' => $plainPassword
             ]);
 
-            // Create the user with the hashed password
+            // Log the entire tenant data for debugging
+            \Log::info('Tenant data', [
+                'tenant_id' => $this->tenant->id,
+                'tenant_data' => $this->tenant->data
+            ]);
+
+            // Get the subscription plan from tenant data
+            $subscriptionPlan = $this->tenant->data['subscription_plan'] ?? 'Pro';
+
+            // Ensure the subscription plan has the correct case (first letter capitalized)
+            $subscriptionPlan = ucfirst(strtolower($subscriptionPlan));
+
+            // Log the subscription plan from application
+            \Log::info('Using subscription plan from application for tenant user', [
+                'tenant_id' => $this->tenant->id,
+                'subscription_plan' => $subscriptionPlan,
+                'original_plan' => $this->tenant->data['subscription_plan'] ?? 'not set'
+            ]);
+
+            // Create the user with the hashed password and subscription plan
             // We need to hash it manually to ensure it's properly hashed
             $user = User::create([
                 'name' => $this->tenant->name,
                 'email' => $this->tenant->email,
                 'password' => Hash::make($plainPassword),
+                'subscription_plan' => $subscriptionPlan,
             ]);
 
             // Log successful user creation

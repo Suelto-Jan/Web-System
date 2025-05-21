@@ -293,6 +293,10 @@ Route::middleware([
 
     // Classroom routes
     Route::middleware('auth')->group(function () {
+        // Subscription Plan
+        Route::get('/subscription/plan', [\App\Http\Controllers\App\SubscriptionPlanController::class, 'index'])->name('subscription.plan');
+        Route::post('/subscription/change-plan', [\App\Http\Controllers\App\SubscriptionPlanController::class, 'changePlan'])->name('subscription.change-plan');
+
         // Subjects
         Route::resource('subjects', SubjectController::class);
         Route::post('/subjects/{subject}/students', [SubjectController::class, 'addStudents'])->name('subjects.students.add');

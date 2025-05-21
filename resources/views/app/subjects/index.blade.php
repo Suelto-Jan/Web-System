@@ -27,6 +27,38 @@
                 </div>
             @endif
 
+            @if(session('error'))
+                <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 p-4 mb-6 rounded-xl flex items-start" role="alert">
+                    <div class="flex-shrink-0 mr-3">
+                        <i class="fas fa-exclamation-circle text-red-500 dark:text-red-400 text-xl"></i>
+                    </div>
+                    <p>{{ session('error') }}</p>
+                </div>
+            @endif
+
+            <!-- Subscription Plan Info -->
+            <div class="mb-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border border-gray-100 dark:border-gray-700">
+                <div class="flex flex-col md:flex-row md:items-center justify-between">
+                    <div class="flex items-center mb-4 md:mb-0">
+                        <div class="p-2 rounded-full {{ $currentPlan == 'Pro' ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400' : ($currentPlan == 'Premium' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400') }} mr-3">
+                            <i class="fas {{ $currentPlan == 'Pro' ? 'fa-crown' : ($currentPlan == 'Premium' ? 'fa-star' : 'fa-user') }} text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-medium text-gray-900 dark:text-white">{{ $currentPlan }} Plan</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                {{ $remainingSubjects < PHP_INT_MAX ? "$remainingSubjects of $maxSubjects subjects remaining" : "Unlimited subjects" }}
+                            </p>
+                        </div>
+                    </div>
+                    @if($currentPlan != 'Pro')
+                        <a href="#" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:from-purple-600 hover:to-indigo-600 shadow-sm transition-all duration-200 text-sm">
+                            <i class="fas fa-arrow-up mr-2"></i>
+                            Upgrade Plan
+                        </a>
+                    @endif
+                </div>
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @forelse($subjects as $subject)
                     <div class="group bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300 border border-gray-100 dark:border-gray-700 hover:border-indigo-200 dark:hover:border-indigo-900">

@@ -7,6 +7,7 @@ use App\Models\Subject;
 use App\Models\Student;
 use App\Models\Submission;
 use App\Services\CloudinaryService;
+use App\Services\SubscriptionLimitService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -15,10 +16,12 @@ use Illuminate\Support\Facades\Log;
 class SubjectController extends Controller
 {
     protected $cloudinaryService;
+    protected $subscriptionLimitService;
 
-    public function __construct(CloudinaryService $cloudinaryService)
+    public function __construct(CloudinaryService $cloudinaryService, SubscriptionLimitService $subscriptionLimitService)
     {
         $this->cloudinaryService = $cloudinaryService;
+        $this->subscriptionLimitService = $subscriptionLimitService;
     }
     /**
      * Display a listing of the resource.
@@ -37,7 +40,13 @@ class SubjectController extends Controller
         }
 
         $subjects = $query->paginate(12)->withQueryString();
-        return view('app.subjects.index', compact('subjects'));
+
+        // Get subscription plan limits
+        $maxSubjects = $this->subscriptionLimitService->getMaxSubjects();
+        $remainingSubjects = $this->subscriptionLimitService->getRemainingSubjects();
+        $currentPlan = $this->subscriptionLimitService->getCurrentSubscriptionPlan();
+
+        return view('app.subjects.index', compact('subjects', 'maxSubjects', 'remainingSubjects', 'currentPlan'));
     }
 
     /**
@@ -45,6 +54,12 @@ class SubjectController extends Controller
      */
     public function create()
     {
+        // Check if the user can create more subjects based on their subscription plan
+        if (!$this->subscriptionLimitService->canCreateSubject()) {
+            return redirect()->route('subjects.index')
+                ->with('error', 'You have reached the maximum number of subjects allowed for your subscription plan. Please upgrade to create more subjects.');
+        }
+
         return view('app.subjects.create');
     }
 
@@ -53,6 +68,12 @@ class SubjectController extends Controller
      */
     public function store(Request $request)
     {
+        // Check if the user can create more subjects based on their subscription plan
+        if (!$this->subscriptionLimitService->canCreateSubject()) {
+            return redirect()->route('subjects.index')
+                ->with('error', 'You have reached the maximum number of subjects allowed for your subscription plan. Please upgrade to create more subjects.');
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
             'code' => 'nullable|string|max:50',

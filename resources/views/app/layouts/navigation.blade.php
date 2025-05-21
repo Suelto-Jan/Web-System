@@ -135,9 +135,7 @@
                 </button>
 
                 <!-- Page Title -->
-                <div class="ml-4 text-lg font-medium text-gray-800 dark:text-white">
-                    Bukidnon State University
-                </div>
+                
             </div>
 
             <div class="flex items-center">
@@ -184,11 +182,7 @@
                                             <i class="fas fa-user-graduate text-blue-600 dark:text-blue-400"></i>
                                         </div>
                                     </div>
-                                    <div class="ml-3 flex-1">
-                                        <p class="text-sm font-medium text-gray-900 dark:text-white">New student enrolled</p>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400">John Doe enrolled in Mathematics</p>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">2 hours ago</p>
-                                    </div>
+                                    
                                 </div>
                             </a>
                             <a href="#" class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700">
@@ -198,26 +192,14 @@
                                             <i class="fas fa-tasks text-blue-600 dark:text-blue-400"></i>
                                         </div>
                                     </div>
-                                    <div class="ml-3 flex-1">
-                                        <p class="text-sm font-medium text-gray-900 dark:text-white">New submission</p>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400">Jane Smith submitted Assignment #3</p>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Yesterday</p>
-                                    </div>
                                 </div>
                             </a>
                         </div>
                         <div class="px-4 py-2 border-t border-gray-100 dark:border-gray-700 text-center">
-                            <a href="#" class="text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300">View all notifications</a>
                         </div>
                     </div>
                 </div>
-
-                <!-- Theme Toggle -->
-                <button type="button" class="ml-3 bg-white dark:bg-gray-800 p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none border border-gray-100 dark:border-gray-700" x-data @click="$dispatch('toggle-theme')">
-                    <span class="sr-only">Toggle theme</span>
-                    <i x-show="!document.documentElement.classList.contains('dark')" class="fas fa-moon"></i>
-                    <i x-show="document.documentElement.classList.contains('dark')" class="fas fa-sun" style="display: none;"></i>
-                </button>
+               
 
                 <!-- Profile dropdown -->
                 <div class="ml-3 relative" x-data="{ open: false }">

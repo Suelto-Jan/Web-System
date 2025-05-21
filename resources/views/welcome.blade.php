@@ -390,17 +390,17 @@
             <!-- Basic Plan -->
             <div class="bg-white dark:bg-[#1a1a1a] rounded-2xl p-8 shadow-xl flex flex-col text-[#4473be] backdrop-blur-sm hover:shadow-2xl transition border border-gray-100 dark:border-gray-800 pricing-card">
                 <h3 class="text-xl font-bold">Basic</h3>
-                <p class="mt-2 text-3xl font-bold">$5.99 <span class="text-base font-normal">/ month</span></p>
+                <p class="mt-2 text-3xl font-bold">₱999<span class="text-base font-normal">/ month</span></p>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Billed yearly</p>
                 <div class="mt-6 mb-6 h-1 w-20 bg-gradient-to-r from-[#4473be] to-[#7da3e0] rounded-full"></div>
                 <ul class="mt-2 space-y-4 text-sm text-[#1b1b18] dark:text-[#EDEDEC] flex-grow">
                     <li class="flex items-center">
                         <i class="fas fa-check text-green-500 mr-2"></i>
-                        1 Instructor Account
+                        3 subjects
                     </li>
                     <li class="flex items-center">
                         <i class="fas fa-check text-green-500 mr-2"></i>
-                        3 Review Classes
+                        30 Students
                     </li>
                     <li class="flex items-center">
                         <i class="fas fa-check text-green-500 mr-2"></i>
@@ -408,11 +408,11 @@
                     </li>
                     <li class="flex items-center">
                         <i class="fas fa-check text-green-500 mr-2"></i>
-                        Upload PDFs, Quizzes
+                        Basic classroom management
                     </li>
                     <li class="flex items-center">
                         <i class="fas fa-check text-green-500 mr-2"></i>
-                        Email Support
+                        Limited file uploads
                     </li>
                 </ul>
                 <button onclick="openSubscriptionModal('Basic')" class="mt-8 bg-[#7da3e0] text-white font-bold py-3 px-6 rounded-full hover:bg-[#5b86cc] transition">
@@ -426,29 +426,29 @@
                     Most Popular
                 </div>
                 <h3 class="text-xl font-bold text-[#4473be]">Premium</h3>
-                <p class="mt-2 text-3xl font-bold">$12.99 <span class="text-base font-normal">/ month</span></p>
+                <p class="mt-2 text-3xl font-bold">₱2,499 <span class="text-base font-normal">/ month</span></p>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Billed yearly</p>
                 <div class="mt-6 mb-6 h-1 w-20 bg-gradient-to-r from-[#4473be] to-[#7da3e0] rounded-full"></div>
                 <ul class="mt-2 space-y-4 text-sm flex-grow">
                     <li class="flex items-center">
                         <i class="fas fa-check text-green-500 mr-2"></i>
-                        Up to 5 Instructor Accounts
+                        5 Subjects
                     </li>
                     <li class="flex items-center">
                         <i class="fas fa-check text-green-500 mr-2"></i>
-                        Unlimited Classes
+                        50 Students
                     </li>
                     <li class="flex items-center">
                         <i class="fas fa-check text-green-500 mr-2"></i>
-                        Up to 300 Students
+                        Advanced classroom management
                     </li>
                     <li class="flex items-center">
                         <i class="fas fa-check text-green-500 mr-2"></i>
-                        Custom Class Branding
+                        Priority email support
                     </li>
                     <li class="flex items-center">
                         <i class="fas fa-check text-green-500 mr-2"></i>
-                        Email + Chat Support
+                        Quiz functionality
                     </li>
                 </ul>
                 <button onclick="openSubscriptionModal('Premium')" class="mt-8 bg-gradient-to-r from-[#4473be] to-[#7da3e0] text-white font-bold py-3 px-6 rounded-full hover:from-[#3a5fa0] hover:to-[#5b86cc] transition shadow-lg">
@@ -459,29 +459,29 @@
             <!-- Pro Plan -->
             <div class="bg-white dark:bg-[#1a1a1a] rounded-2xl p-8 shadow-xl flex flex-col text-[#4473be] hover:shadow-2xl transition backdrop-blur-sm border border-gray-100 dark:border-gray-800 pricing-card">
                 <h3 class="text-xl font-bold">Pro</h3>
-                <p class="mt-2 text-3xl font-bold">$21.99 <span class="text-base font-normal">/ month</span></p>
+                <p class="mt-2 text-3xl font-bold">₱4,999 <span class="text-base font-normal">/ month</span></p>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Billed yearly</p>
                 <div class="mt-6 mb-6 h-1 w-20 bg-gradient-to-r from-[#4473be] to-[#7da3e0] rounded-full"></div>
                 <ul class="mt-2 space-y-4 text-sm text-[#1b1b18] dark:text-[#EDEDEC] flex-grow">
                     <li class="flex items-center">
                         <i class="fas fa-check text-green-500 mr-2"></i>
-                        Unlimited Instructors
+                        Unlimited Subjects
                     </li>
                     <li class="flex items-center">
                         <i class="fas fa-check text-green-500 mr-2"></i>
-                        Unlimited Classes & Students
+                        Unlimited  Students
                     </li>
                     <li class="flex items-center">
                         <i class="fas fa-check text-green-500 mr-2"></i>
-                        Live Video Session Integration
+                        Complete classroom management
                     </li>
                     <li class="flex items-center">
                         <i class="fas fa-check text-green-500 mr-2"></i>
-                        Advanced Reports & Tracking
+                        All activity types
                     </li>
                     <li class="flex items-center">
                         <i class="fas fa-check text-green-500 mr-2"></i>
-                        24/7 Priority Support
+                        Priority 24/7 support
                     </li>
                 </ul>
                 <button onclick="openSubscriptionModal('Pro')" class="mt-8 bg-[#7da3e0] text-white font-bold py-3 px-6 rounded-full hover:bg-[#5b86cc] transition">

@@ -138,11 +138,11 @@
                 
 
                 <!-- Logout Button -->
-               
+
                 <!-- User Profile -->
                 <div class="relative ml-2">
                     <button @click="profileOpen = !profileOpen" class="flex items-center focus:outline-none">
-                        <div class="h-8 w-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center shadow-sm overflow-hidden">
+                        <div class="h-8 w-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center shadow-sm overflow-hidden">                                                                                                                            
                             @php
                                 $profilePhoto = Auth::guard('student')->user()->profile_photo ?? null;
                             @endphp

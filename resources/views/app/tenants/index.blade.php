@@ -8,12 +8,7 @@
                 <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
                     {{ __('Tenant Management') }}
                 </h2>
-            </div>
-            <a href="{{ route('tenants.create') }}" class="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl hover:from-indigo-600 hover:to-purple-600 shadow-sm hover:shadow transition-all duration-200">
-                <i class="fas fa-plus mr-2"></i>
-                Create Tenant
-            </a>
-        </div>
+           
     </x-slot>
 
     <div class="py-6">
@@ -119,13 +114,7 @@
                                         @csrf
                                     </form>
                                 @endif
-                                <form action="{{ route('tenants.destroy', $tenant) }}" method="POST" class="inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="p-1.5 rounded-lg text-red-600 hover:text-white dark:text-red-400 dark:hover:text-white hover:bg-red-600 dark:hover:bg-red-600 transition-colors" title="Delete" onclick="return confirm('Are you sure you want to delete this tenant?')">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </form>
+                               
                             </div>
                         </div>
                     </div>

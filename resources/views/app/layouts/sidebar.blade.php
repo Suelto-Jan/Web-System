@@ -64,6 +64,15 @@
                 <span x-show="open" class="ml-3 transition-all duration-300 ease-in-out" x-transition>Dashboard</span>
             </a>
 
+            <a href="{{ route('subscription.plan') }}"
+               class="group flex items-center px-3 py-2 rounded-lg font-medium transition-all duration-200"
+               :class="activeMenu === 'subscription.plan' ? 'bg-indigo-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400'">
+                <div class="flex items-center justify-center w-8 h-8 rounded-lg" :class="activeMenu === 'subscription.plan' ? 'bg-white/20 text-white' : 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 group-hover:bg-purple-200 dark:group-hover:bg-purple-800/40'">
+                    <i class="fas fa-crown"></i>
+                </div>
+                <span x-show="open" class="ml-3 transition-all duration-300 ease-in-out" x-transition>My Plan</span>
+            </a>
+
             <a href="{{ route('subjects.index') }}"
                class="group flex items-center px-3 py-2 rounded-lg font-medium transition-all duration-200"
                :class="activeMenu === 'subjects.index' || activeMenu.startsWith('subjects.') ? 'bg-indigo-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400'">
@@ -119,8 +128,10 @@
             </a>
         </div>
 
+
+
         <!-- Version Info -->
-        <div class="mt-8 px-4 py-3 text-xs text-gray-400 dark:text-gray-500" x-show="open">
+        <div class="mt-4 px-4 py-3 text-xs text-gray-400 dark:text-gray-500" x-show="open">
             <div class="flex items-center">
                 <div class="w-2 h-2 rounded-full bg-green-400 mr-2"></div>
                 <span>Teacher Portal v1.0</span>

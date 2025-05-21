@@ -53,6 +53,7 @@
                                 <option value="">All Plans</option>
                                 <option value="basic">Basic</option>
                                 <option value="premium">Premium</option>
+                                <option value="pro">Pro</option>
                             </select>
                         </div>
                     </div>
@@ -96,9 +97,13 @@
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 <div class="text-sm text-gray-600 dark:text-gray-300">
-                                                    @if($application->subscription_plan === 'premium')
+                                                    @if($application->subscription_plan === 'Premium' || $application->subscription_plan === 'premium')
                                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300">
                                                             <i class="fas fa-crown text-amber-500 mr-1.5"></i> Premium
+                                                        </span>
+                                                    @elseif($application->subscription_plan === 'Pro' || $application->subscription_plan === 'pro')
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300">
+                                                            <i class="fas fa-star text-amber-500 mr-1.5"></i> Pro
                                                         </span>
                                                     @else
                                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300">
@@ -241,7 +246,16 @@
 
                         const matchesSearch = companyName.includes(searchTerm) || email.includes(searchTerm);
                         const matchesStatus = statusValue === '' || status.includes(statusValue);
-                        const matchesPlan = planValue === '' || plan.includes(planValue);
+
+                        // Special handling for plan filtering
+                        let matchesPlan = planValue === '';
+                        if (planValue === 'basic' && plan.includes('basic')) {
+                            matchesPlan = true;
+                        } else if (planValue === 'premium' && plan.includes('premium')) {
+                            matchesPlan = true;
+                        } else if (planValue === 'pro' && plan.includes('pro')) {
+                            matchesPlan = true;
+                        }
 
                         if (matchesSearch && matchesStatus && matchesPlan) {
                             row.style.display = '';

@@ -219,7 +219,19 @@
                                         </p>
                                         <p class="text-sm text-gray-600 dark:text-gray-300 flex items-center">
                                             <i class="fas fa-tag text-gray-400 mr-1.5"></i>
-                                            {{ $application->subscription_plan }}
+                                            @if(strtolower($application->subscription_plan) === 'premium')
+                                                <span class="inline-flex items-center ml-1 px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300">
+                                                    <i class="fas fa-crown text-amber-500 mr-1"></i> Premium
+                                                </span>
+                                            @elseif(strtolower($application->subscription_plan) === 'pro')
+                                                <span class="inline-flex items-center ml-1 px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300">
+                                                    <i class="fas fa-star text-amber-500 mr-1"></i> Pro
+                                                </span>
+                                            @else
+                                                <span class="inline-flex items-center ml-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300">
+                                                    <i class="fas fa-check mr-1"></i> Basic
+                                                </span>
+                                            @endif
                                         </p>
                                         <div class="mt-3 flex space-x-2">
                                             <form method="POST" action="{{ route('applications.approve', $application->id) }}">
